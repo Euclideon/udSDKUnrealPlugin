@@ -13,3 +13,6 @@ Saved
 *.xcodeproj
 *.xcworkspace
 /Config/DefaultObjectStorageSettings.ini
+
+# Rider IDE auto generated folder 
+.idea
