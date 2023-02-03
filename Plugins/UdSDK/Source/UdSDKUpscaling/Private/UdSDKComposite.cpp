@@ -863,56 +863,31 @@ int CUdSDKComposite::RecreateUDView(int InWidth, int InHeight, float InFOV)
 		ETextureCreateFlags TexCreateFlags = TexCreate_Dynamic; // Flags for .SetFlags()
 		{
 			ColorBulkData.ResizeArray(Width * Height);
-			// FRHIResourceCreateInfo CreateInfo; - // UE_5.1 API has no default constructor now...
-			
 			const FString DebugName = "RecreateUDView ColorTexture";
-			// FRHIResourceCreateInfo CreateInfo = FRHIResourceCreateInfo::FRHIResourceCreateInfo(*DebugName);
 			
 			// RHICreateTexture2D - DEPRECATED in 5.1, use RHICreateTexture(FRHITextureCreateDesc) instead
-			ColorTexture = RHICreateTexture2D(Width, Height, EPixelFormat::PF_B8G8R8A8, 1, 1, TexCreateFlags, CreateInfo); // 4.27 Line
+			// ColorTexture = RHICreateTexture2D(Width, Height, EPixelFormat::PF_B8G8R8A8, 1, 1, TexCreateFlags, CreateInfo); // 4.27 Line
+
+			// New 5.1 texture descriptor
 			FRHITextureCreateDesc ColorTextureDescriptor = FRHITextureCreateDesc::Create2D(*DebugName, Width, Height, EPixelFormat::PF_B8G8R8A8);
 			&ColorTextureDescriptor.SetFlags(TexCreateFlags);
 			&ColorTextureDescriptor.SetNumMips(1);
 			&ColorTextureDescriptor.SetNumSamples(1);
 			ColorTexture = RHICreateTexture(ColorTextureDescriptor);
-
-			
-			// UE_LOG(LogTemp, Warning, TEXT("Warning - UDSDKComposite.cpp Using depreciated code: 'RHICreateTexture2D'"));
 		}
 
 		{
-			const FString DebugName = "RecreateUDView DepthTexture"; // 5.1 API might require a name to be passed in
 			DepthBulkData.ResizeArray(Width * Height);
-			
-			// FRHIResourceCreateInfo CreateInfo; // UE_5.1 API has no default constructor now...
-			//FRHIResourceCreateInfo CreateInfo = FRHIResourceCreateInfo::FRHIResourceCreateInfo(*DebugName);
-			DepthTexture = RHICreateTexture2D(Width, Height, EPixelFormat::PF_R32_FLOAT, 1, 1, TexCreateFlags, CreateInfo);
-			
-			UE_LOG(LogTemp, Warning, TEXT("Warning - UDSDKComposite.cpp Using depreciated code: 'RHICreateTexture2D'"));
-			
-				
-			// SizeX - Width
-			// SizeY - Height
-			// Format - PF_R32_FLOAT
-			// Mips 1
-			// Samples 1
-			// Flags - TexCreateFlags
-			
-			
-			//FRHITextureCreateDesc ::SetNumMips();
-			//FRHITextureCreateDesc::SetFlags();
-			
-			
+			// DepthTexture = RHICreateTexture2D(Width, Height, EPixelFormat::PF_R32_FLOAT, 1, 1, TexCreateFlags, CreateInfo); 4.27 line
+
+			const FString DebugName = "RecreateUDView DepthTexture"; // 5.1 API might require a name to be passed in
+
+			// New 5.1 descriptor
 			FRHITextureCreateDesc DepthTextureDescr = FRHITextureCreateDesc::Create2D(*DebugName, Width, Height, EPixelFormat::PF_R32_FLOAT);
 			&DepthTextureDescr.SetNumMips(1);
 			&DepthTextureDescr.SetNumSamples(1);
 			&DepthTextureDescr.SetFlags(TexCreateFlags);
-			
-			FRHITextureCreateDesc testlol;// = FRHITextureCreateDesc::SetNumMips(3);
-			
-			// DepthTextureDescr
 			DepthTexture = RHICreateTexture(DepthTextureDescr);
-
 		}
 	}
 
