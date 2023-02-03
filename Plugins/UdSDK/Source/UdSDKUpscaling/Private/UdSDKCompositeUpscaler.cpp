@@ -61,6 +61,8 @@ FScreenPassTexture FUdSDKCompositeUpscaler::AddPasses(FRDGBuilder& GraphBuilder,
 {
 	RDG_GPU_STAT_SCOPE(GraphBuilder, UdSDKCompositeResolutionPass);
 	check(PassInputs.SceneColor.IsValid());
+	
+
 
 	TSharedPtr<FUdsData> Data = GetDataForView(View);
 	for (FUdsSubpass* Subpass : FUdsubpasses)

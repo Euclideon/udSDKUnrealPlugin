@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Dialogs/CustomDialog.h"
+// #include "Dialogs/CustomDialog.h"
+#include "Dialogs/Dialogs.h"
+//#include "/Engine/Source/Editor/UnrealEd/Public/Dialogs/CustomDialog.h"
 #include "Widgets/SCompoundWidget.h"
 
 class FArguments;
