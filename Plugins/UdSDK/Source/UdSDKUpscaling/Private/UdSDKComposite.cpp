@@ -860,7 +860,7 @@ int CUdSDKComposite::RecreateUDView(int InWidth, int InHeight, float InFOV)
 
 	{
 		FScopeLock ScopeLock(&BulkDataMutex);
-		ETextureCreateFlags TexCreateFlags = TexCreate_Dynamic; // Does the 5.1 API take these anymore?
+		ETextureCreateFlags TexCreateFlags = TexCreate_Dynamic; // Flags for .SetFlags()
 		{
 			ColorBulkData.ResizeArray(Width * Height);
 			// FRHIResourceCreateInfo CreateInfo; - // UE_5.1 API has no default constructor now...
@@ -869,9 +869,11 @@ int CUdSDKComposite::RecreateUDView(int InWidth, int InHeight, float InFOV)
 			// FRHIResourceCreateInfo CreateInfo = FRHIResourceCreateInfo::FRHIResourceCreateInfo(*DebugName);
 			
 			// RHICreateTexture2D - DEPRECATED in 5.1, use RHICreateTexture(FRHITextureCreateDesc) instead
-			// ColorTexture = RHICreateTexture2D(Width, Height, EPixelFormat::PF_B8G8R8A8, 1, 1, TexCreateFlags, CreateInfo);
-
-			const FRHITextureCreateDesc ColorTextureDescriptor = FRHITextureCreateDesc::Create2D(*DebugName, Width, Height, EPixelFormat::PF_B8G8R8A8);
+			ColorTexture = RHICreateTexture2D(Width, Height, EPixelFormat::PF_B8G8R8A8, 1, 1, TexCreateFlags, CreateInfo); // 4.27 Line
+			FRHITextureCreateDesc ColorTextureDescriptor = FRHITextureCreateDesc::Create2D(*DebugName, Width, Height, EPixelFormat::PF_B8G8R8A8);
+			&ColorTextureDescriptor.SetFlags(TexCreateFlags);
+			&ColorTextureDescriptor.SetNumMips(1);
+			&ColorTextureDescriptor.SetNumSamples(1);
 			ColorTexture = RHICreateTexture(ColorTextureDescriptor);
 
 			
