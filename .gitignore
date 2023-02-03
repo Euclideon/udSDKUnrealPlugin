@@ -16,3 +16,6 @@ Saved
 
 # Rider IDE auto generated folder 
 .idea
+
+# Auto generated VS config file
+.vsconfig
