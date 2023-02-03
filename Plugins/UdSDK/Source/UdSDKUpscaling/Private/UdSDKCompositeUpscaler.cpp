@@ -12,14 +12,21 @@
 
 DECLARE_GPU_STAT(UdSDKCompositeResolutionPass)
 
-FUdSDKCompositeUpscaler::FUdSDKCompositeUpscaler(EUdsMode InMode, TArray<TSharedPtr<FUdsData>> InViewData)
-	: Mode(InMode)
-	, ViewData(InViewData)
+FUdSDKCompositeUpscaler::FUdSDKCompositeUpscaler(EUdsMode InMode, TArray<TSharedPtr<FUdsData>> InViewData) : Mode(InMode) , ViewData(InViewData)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Constructor running ..."));
+	UE_LOG(LogTemp, Display, TEXT("Constructor running ..."));
+
+	/*
+	for (auto viewData : InViewData)
+	{
+		viewData.Get().
+	}
+	*/
 	
 	if (Mode != EUdsMode::None)
 	{
+		UE_LOG(LogTemp, Display, TEXT("EUdsMode != none"));
+
 		// subpasses will run in the order in which they are registered
 		 
 		// ensure this subpass always runs first
@@ -66,21 +73,12 @@ ISpatialUpscaler* FUdSDKCompositeUpscaler::Fork_GameThread(const class FSceneVie
 FScreenPassTexture FUdSDKCompositeUpscaler::AddPasses(FRDGBuilder& GraphBuilder, const FViewInfo& View, const FInputs& PassInputs) const
 {
 	UE_LOG(LogTemp, Warning, TEXT("Add passes running"));
-	// Might need to do something like this here to prevent the early exceptions when resources are not ready.
-	/*// Will be null if bIsSceneTexturesInitialized is false in ViewFamily
-	if(View.GetSceneTexturesChecked() == nullptr)
-	{
-		// Scene textures are not ready yet
-		UE_LOG(LogTemp, Warning, TEXT("Scene textures are not ready yet"));
-	}*/
-
-	
 	
 	RDG_GPU_STAT_SCOPE(GraphBuilder, UdSDKCompositeResolutionPass);
 	check(PassInputs.SceneColor.IsValid());
+
 	
-
-
+	
 	TSharedPtr<FUdsData> Data = GetDataForView(View);
 	for (FUdsSubpass* Subpass : FUdsubpasses)
 	{

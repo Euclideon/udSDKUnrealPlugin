@@ -64,8 +64,9 @@ void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FVie
 
 		// TODO - Investigate if this can be better handled?
 		// Not sure if this should be done here / every frame
-		FSceneTextures::InitializeViewFamily(GraphBuilder, *(FViewFamilyInfo*)View.Family);
-
+		// there MUST be a better way to handle this
+		// FSceneTextures::InitializeViewFamily(GraphBuilder, *(FViewFamilyInfo*)View.Family);
+		
 		// Will be null if bIsSceneTexturesInitialized is false in ViewFamily
 		if(View.GetSceneTexturesChecked() == nullptr)
 		{
@@ -73,20 +74,28 @@ void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FVie
 			UE_LOG(LogTemp, Warning, TEXT("Scene textures are not ready yet"));
 		}
 		
-		/*if (!View.GetSceneTextures().Depth.Resolve->HasBeenProduced())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Scene depth has not been produced yet."));
-		}*/
-
-		// View.GetSceneTextures().Depth.Resolve->HasBeenProduced();
-
 		// Grab a ref to the depth texture of the current views scene textures
 		// Must call InitializeViewFamily before accessing
-		FRDGTextureRef CurSceneDepth = View.GetSceneTextures().Depth.Resolve;
-		CurSceneDepth = View.GetSceneTextures().Depth.Target;
+		// FRDGTextureRef CurSceneDepth = CurSceneDepth = View.GetSceneTextures().Depth.Target;
 
-		auto PolledRT = View.GetSceneTextures().Depth.Target->GetPooledRenderTarget();
-		Data->SceneDepthTexture = GraphBuilder.RegisterExternalTexture(PolledRT); // Registers external?
+		// CurSceneDepth->HasBeenProduced();
+
+
+		// Depth fails the following conditions: Resource->bProduced || Resource->bExternal || Resource->bQueuedForUpload
+		//Data->SceneDepthTexture = View.GetSceneTextures().Depth.Target; // Registers external?
+
+
+		
+		// Create buffer
+		FRDGTextureDesc Description;
+		Description.Reset();
+		Description.Extent = FIntPoint(1, 1);
+		Description.Format = PF_FloatRGBA;
+		Description.ClearValue = FClearValueBinding(FLinearColor::Transparent);
+		FString PassName = "DummyPassName";
+		FRDGTextureRef MixTexture = GraphBuilder.CreateTexture(Description, *PassName);
+		
+		Data->SceneDepthTexture = MixTexture; // Also throws the same error as testing the scene depth directly
 
 		
 		//GraphBuilder.RegisterExternalTexture();
@@ -94,9 +103,9 @@ void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FVie
 		// FExternalTextureRegistry
 
 
-		// Depth fails the following conditions: Resource->bProduced || Resource->bExternal || Resource->bQueuedForUpload
 		// qQueuedforUpload apears to be false early
-		
+		/**/
+		/*
 		if(CurSceneDepth->HasBeenProduced())
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Scene depth target has been produced"));
@@ -115,7 +124,8 @@ void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FVie
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Scene depth target is NOT external"));
-		}
+		}*/
+		
 		// CurSceneDepth.
 
 		// Setup our textures for use in our post process shader later
