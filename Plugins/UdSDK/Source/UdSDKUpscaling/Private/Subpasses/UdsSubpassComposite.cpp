@@ -48,8 +48,15 @@ void FUdsSubpassComposite::ParseEnvironment(FRDGBuilder& GraphBuilder, const FVi
 
 void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FViewInfo& View, const FInputs& PassInputs)
 {
-	if (Data->bEnabled)
+	// Immediately after a return here // error  FParameters::Composite::DepthTexture was not set. throws
+	UE_LOG(LogTemp, Warning, TEXT("Returning early as a test"));
+	// return;
+
+	// check(false); // Adding here so i dont get lost
+	if (Data->bEnabled) // We can't at all prevent execution here or we throw nulls later right?
 	{
+		// trying to prevent Resource->bProduced || Resource->bExternal || Resource->bQueuedForUpload error on texture
+		
 		// These are the original 4.27 lines that needed to be refactored beacuse FSceneRenderTargets has been replaced with FSceneTextures
 		// const FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(GraphBuilder.RHICmdList); // 4.27 line Refactor me beacuse this was depreciated in 5.0
 		//Data->SceneDepthTexture = GraphBuilder.RegisterExternalTexture(SceneContext.SceneDepthZ, TEXT("SceneDepthTexture")); // 4.27 line Original line that no longer works
@@ -74,13 +81,44 @@ void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FVie
 
 		// Grab a ref to the depth texture of the current views scene textures
 		// Must call InitializeViewFamily before accessing
-		const FRDGTextureRef CurSceneDepth = View.GetSceneTextures().Depth.Resolve;
+		FRDGTextureRef CurSceneDepth = View.GetSceneTextures().Depth.Resolve;
+		CurSceneDepth = View.GetSceneTextures().Depth.Target;
+
+		
+		
+		if(CurSceneDepth->HasBeenProduced())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Scene depth target has been produced"));
+		}
+
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Scene depth target has not been produced yet"));
+		}
+
+		if(CurSceneDepth->IsExternal())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Scene depth target is external"));
+		}
+
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Scene depth target is NOT external"));
+		}
+		// CurSceneDepth.
 
 		// Setup our textures for use in our post process shader later
+		// I beleive this has to be registered as external?
 		Data->SceneDepthTexture = CurSceneDepth; // Might want to find a decent way to pass a zero depth value while scene depth isn't ready?
 		Data->CurrentInputTexture = PassInputs.SceneColor.Texture;
 		Data->OutputViewport = FScreenPassTextureViewport(PassInputs.SceneColor);
 		Data->InputViewport = FScreenPassTextureViewport(PassInputs.SceneColor);
+	}
+
+	// Wondering if this edge case is ever viable to handle or if it throws exceptions later
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("UDSSubpassCOmposit not enabled yet"));
 	}
 }
 
