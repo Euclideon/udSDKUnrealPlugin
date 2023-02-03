@@ -17,7 +17,7 @@ static TAutoConsoleVariable<int32> CVarEnableUds(
 
 FUdSDKCompositeViewExtension::FUdSDKCompositeViewExtension(const FAutoRegister& AutoRegister) :
 	FSceneViewExtensionBase(AutoRegister)
-{
+{	
 
 }
 

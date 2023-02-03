@@ -1,8 +1,9 @@
 #include "UdsSubpassComposite.h"
 #include "UdSDKComposite.h"
-#include "Engine/TextureRenderTarget2D.h"
+// #include "Engine/TextureRenderTarget2D.h"
 // #include "SceneRenderTargets.h"
 #include "EdGraphSchema_K2_Actions.h"
+#include "ExternalTexture.h"
 #include "Runtime/Renderer/Private/SceneRendering.h"
 
 static int32 GUdsComposite = 1;
@@ -49,7 +50,7 @@ void FUdsSubpassComposite::ParseEnvironment(FRDGBuilder& GraphBuilder, const FVi
 void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FViewInfo& View, const FInputs& PassInputs)
 {
 	// Immediately after a return here // error  FParameters::Composite::DepthTexture was not set. throws
-	UE_LOG(LogTemp, Warning, TEXT("Returning early as a test"));
+	// UE_LOG(LogTemp, Warning, TEXT("Returning early as a test"));
 	// return;
 
 	// check(false); // Adding here so i dont get lost
@@ -84,7 +85,17 @@ void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FVie
 		FRDGTextureRef CurSceneDepth = View.GetSceneTextures().Depth.Resolve;
 		CurSceneDepth = View.GetSceneTextures().Depth.Target;
 
+		auto PolledRT = View.GetSceneTextures().Depth.Target->GetPooledRenderTarget();
+		Data->SceneDepthTexture = GraphBuilder.RegisterExternalTexture(PolledRT); // Registers external?
+
 		
+		//GraphBuilder.RegisterExternalTexture();
+
+		// FExternalTextureRegistry
+
+
+		// Depth fails the following conditions: Resource->bProduced || Resource->bExternal || Resource->bQueuedForUpload
+		// qQueuedforUpload apears to be false early
 		
 		if(CurSceneDepth->HasBeenProduced())
 		{
@@ -109,7 +120,7 @@ void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FVie
 
 		// Setup our textures for use in our post process shader later
 		// I beleive this has to be registered as external?
-		Data->SceneDepthTexture = CurSceneDepth; // Might want to find a decent way to pass a zero depth value while scene depth isn't ready?
+		// Data->SceneDepthTexture = CurSceneDepth; // Might want to find a decent way to pass a zero depth value while scene depth isn't ready?
 		Data->CurrentInputTexture = PassInputs.SceneColor.Texture;
 		Data->OutputViewport = FScreenPassTextureViewport(PassInputs.SceneColor);
 		Data->InputViewport = FScreenPassTextureViewport(PassInputs.SceneColor);

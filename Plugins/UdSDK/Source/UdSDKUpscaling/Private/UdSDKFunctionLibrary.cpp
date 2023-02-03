@@ -15,7 +15,9 @@ bool UUdSDKFunctionLibrary::IsLogin()
 {
 	bool Flag = false;
 	if (CUdSDKComposite::Get())
+	{
 		Flag = CUdSDKComposite::Get()->IsLogin();
+	}
 	return Flag;
 }
 
@@ -23,7 +25,9 @@ bool UUdSDKFunctionLibrary::Login()
 {
 	int Success = -1;
 	if (CUdSDKComposite::Get())
+	{
 		Success = CUdSDKComposite::Get()->Login();
+	}
 	return Success == 0 ? true : false;
 }
 
@@ -31,14 +35,18 @@ bool UUdSDKFunctionLibrary::Exit()
 {
 	int Success = -1;
 	if (CUdSDKComposite::Get())
+	{
 		Success = CUdSDKComposite::Get()->Exit();
+	}
 	return Success == 0 ? true : false;
 }
 
 FDelegateHandle UUdSDKFunctionLibrary::AddLoginDelegateLambda(const FunUdSDKDelegate& FuncDelegate)
 {
 	if (CUdSDKComposite::Get())
+	{
 		return CUdSDKComposite::Get()->LoginDelegate.AddLambda(FuncDelegate);
+	}
 	return FDelegateHandle();
 }
 
@@ -50,12 +58,16 @@ void UUdSDKFunctionLibrary::DeleteLoginDelegateHandle(const FDelegateHandle & Ha
 FDelegateHandle UUdSDKFunctionLibrary::AddExitDelegateLambda(const FunUdSDKDelegate& FuncDelegate)
 {
 	if (CUdSDKComposite::Get())
+	{
 		return CUdSDKComposite::Get()->ExitLaterDelegate.AddLambda(FuncDelegate);
+	}
 	return FDelegateHandle();
 }
 
 void UUdSDKFunctionLibrary::DeleteExitDelegateHandle(const FDelegateHandle& Handle)
 {
 	if (CUdSDKComposite::Get())
+	{
 		CUdSDKComposite::Get()->ExitLaterDelegate.Remove(Handle);
+	}
 }
