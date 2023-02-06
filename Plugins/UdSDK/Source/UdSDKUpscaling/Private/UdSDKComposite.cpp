@@ -139,9 +139,18 @@ int CUdSDKComposite::Init()
 	return error;
 }
 
+// Called as a result of clicking Login() from the widget
 int CUdSDKComposite::Login()
 {
-	//FScopeLock ScopeLock(&CallMutex);
+	UE_LOG(LogTemp, Display, TEXT("Auth values at start of Login() function"));
+	
+	UE_LOG(LogTemp, Display, TEXT("Offline: %d"), (int)Offline);
+	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
+	UE_LOG(LogTemp, Display, TEXT("Username: %s"), *Username);
+	UE_LOG(LogTemp, Display, TEXT("Password: %s"), *Password);
+
+
+	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
 
 	enum udError error = udE_Failure;
 	
@@ -158,28 +167,37 @@ int CUdSDKComposite::Login()
 		return error;
 	}
 
+	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
+
 	{
 		FScopeLock ScopeLockInst(&DataMutex);
 		InstanceArray.Reset();
 	}
-	//AssetArray.Reset();
-	
+
+	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
 
 	error = udConfig_IgnoreCertificateVerification(true);
+	UE_LOG(LogTemp, Display, TEXT("Litteral udContext return val: %d"), error);
+
 	if (error != udE_Success)
 	{
 		UDSDK_ERROR_MSG("udConfig_IgnoreCertificateVerification(true) error : %s", GetError(error));
 		return error;
 	}
 
-	//if (Offline)
-	//{
-	//	error = udContext_TryResume(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE4_Client_Offline", TCHAR_TO_UTF8(*Username), true);
-	//}
-	//else
+	
 	{
-		error = udContext_Connect(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE4_Client", TCHAR_TO_UTF8(*Username), TCHAR_TO_UTF8(*Password));
+		UE_LOG(LogTemp, Display, TEXT("Auth values JUST prior to attempting the direct connection"));
+		
+		UE_LOG(LogTemp, Display, TEXT("Offline: %d"), (int)Offline);
+		UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
+		UE_LOG(LogTemp, Display, TEXT("Username: %s"), *Username);
+		UE_LOG(LogTemp, Display, TEXT("Password: %s"), *Password);
+		
+		error = udContext_Connect(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", TCHAR_TO_UTF8(*Username), TCHAR_TO_UTF8(*Password));
 	}
+	
+	UE_LOG(LogTemp, Display, TEXT("Litteral udContext return val: %d"), error);
 
 	if (error != udE_Success)
 	{
@@ -203,10 +221,12 @@ int CUdSDKComposite::Login()
 		UDSDK_WARNING_MSG("The ViewExtension object already exists");
 	}
 
+	// Print debug info
+	UDSDK_SCREENDE_SUCCESS_MSG("Successfully Logged in!");
 	UDSDK_SCREENDE_SUCCESS_MSG("Offline : %d", (int)Offline);
 	UDSDK_SCREENDE_SUCCESS_MSG("Server : %s", *ServerUrl);
 	UDSDK_SCREENDE_SUCCESS_MSG("Username : %s", *Username);
-	UDSDK_SUCCESS_MSG("Password : %s", *Password);
+	// UDSDK_SUCCESS_MSG("Password : %s", *Password);
 	UDSDK_SCREENDE_SUCCESS_MSG("Login to the UDServer : %s", GetError(error));
 	
 	LoginFlag = true;
@@ -223,7 +243,7 @@ int CUdSDKComposite::Exit()
 
 	ViewExtension = nullptr;
 
-	ServerUrl = "";
+	ServerUrl = ""; // udstream.euclideon.com and udcloud.euclideon.com
 	Username = "";
 	Password = "";
 	Offline = false;
@@ -685,9 +705,9 @@ int CUdSDKComposite::AsyncSetSelected(uint32 InUniqueID, bool InSelect)
 int CUdSDKComposite::SetSelected(uint32 InUniqueID, bool InSelect)
 {
 	FScopeLock ScopeLock(&DataMutex);
-	enum udError error = udE_Success;
+	enum udError error = udE_Success; // can't fail?
 	void* pPointCloud = nullptr;
-	if (TSharedPtr<FUdAsset> Asset = AssetsMap.FindRef(InUniqueID))
+	if (TSharedPtr<FUdAsset> Asset = AssetsMap.FindRef(InUniqueID)) // but can fail and return nullptr?
 	{
 		Asset->selected = InSelect;
 	}

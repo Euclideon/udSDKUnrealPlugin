@@ -46,7 +46,8 @@ void FUdsSubpassComposite::ParseEnvironment(FRDGBuilder& GraphBuilder, const FVi
 	Data->bEnabled = GUdsComposite > 0;// && Data->UdColorTexture&& Data->UdDepthTexture;
 }
 
-
+// Create resources is primarily used to prep all the textures for the post processing event
+// The scene depth texture can be invalid in the first few frames of the post processing execution, so thats whats causing the headache.
 void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FViewInfo& View, const FInputs& PassInputs)
 {
 	// Immediately after a return here // error  FParameters::Composite::DepthTexture was not set. throws
@@ -73,6 +74,13 @@ void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FVie
 			// Scene textures are not ready yet
 			UE_LOG(LogTemp, Warning, TEXT("Scene textures are not ready yet"));
 		}
+
+		// Queue the extraction of the texture
+		//TRefCountPtr<IPooledRenderTarget> FrameCurDepth;
+		//GraphBuilder.QueueTextureExtraction(View.GetSceneTextures().Depth.Resolve, &FrameCurDepth);
+		//Data->SceneDepthTexture = GraphBuilder.RegisterExternalTexture(FrameCurDepth);
+		
+	
 		
 		// Grab a ref to the depth texture of the current views scene textures
 		// Must call InitializeViewFamily before accessing
@@ -82,10 +90,11 @@ void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FVie
 
 
 		// Depth fails the following conditions: Resource->bProduced || Resource->bExternal || Resource->bQueuedForUpload
-		//Data->SceneDepthTexture = View.GetSceneTextures().Depth.Target; // Registers external?
-
-
+		// This technically works, but fails early beacuse the depth isn't produced until after the first few frames
+		Data->SceneDepthTexture = View.GetSceneTextures().Depth.Target; // Should register external instead?
+		Data->SceneDepthTexture->HasBeenProduced();
 		
+		/*
 		// Create buffer
 		FRDGTextureDesc Description;
 		Description.Reset();
@@ -94,9 +103,11 @@ void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FVie
 		Description.ClearValue = FClearValueBinding(FLinearColor::Transparent);
 		FString PassName = "DummyPassName";
 		FRDGTextureRef MixTexture = GraphBuilder.CreateTexture(Description, *PassName);
+		*/
 		
-		Data->SceneDepthTexture = MixTexture; // Also throws the same error as testing the scene depth directly
+		// Data->SceneDepthTexture = MixTexture; // Also throws the same error as testing the scene depth directly
 
+		
 		
 		//GraphBuilder.RegisterExternalTexture();
 

@@ -40,7 +40,7 @@ public:
 	//UPROPERTY(config, EditAnywhere, Category = PakSettings, meta = (ToolTip = "Specify the address to upload."))
 	//bool bInstallContentPak;
 	//
-	///*项目路径 + 自定义的路径*/
+	///*脧卯脛驴脗路戮露 + 脳脭露篓脪氓碌脛脗路戮露*/
 	//UPROPERTY(config, EditAnywhere, Category = PakSettings, meta = (ToolTip = "Specify the address to upload.", EditCondition = "!bInstallContentPak"))
 	//FString RelativeInstallationLocation;
 

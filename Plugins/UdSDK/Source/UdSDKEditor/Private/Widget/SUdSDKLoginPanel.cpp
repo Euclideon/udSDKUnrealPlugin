@@ -39,20 +39,22 @@ void LoadObjectConfig()
     }
 }
 
-
+// The main widget constructor for the login menu
 void SUdSDKLoginPanel::Construct(const FArguments& InArgs)
 {
     LoadObjectConfig<UObjectStorageSettings>();
 
-    ServerName = GetMutableDefault<UObjectStorageSettings>()->ServerPath.ToString();
+    ServerName = GetMutableDefault<UObjectStorageSettings>()->ServerPath.ToString(); // Make sure to enforce the default of storage object to udcloud
     UserName = GetMutableDefault<UObjectStorageSettings>()->Username.ToString();
     Password = GetMutableDefault<UObjectStorageSettings>()->Password.ToString();
     Offline = GetMutableDefault<UObjectStorageSettings>()->Offline;
 
-    CheckBoxs_LineState.SetNum(2);
+    CheckBoxs_LineState.SetNum(2); // Not sure why hardcoded
+    // CAUTION - These might sometimes fail to update correctly when the user inputs new login data  
     if (Options_Server.Num() <= 0) {
-        Options_Server.Add(MakeShareable(new FString(TEXT("https://udstream.euclideon.com.cn"))));
-        Options_Server.Add(MakeShareable(new FString(TEXT("https://udstream.euclideon.com"))));
+        Options_Server.Add(MakeShareable(new FString(TEXT("https://udstream.euclideon.com.cn")))); // Should disable?
+        Options_Server.Add(MakeShareable(new FString(TEXT("https://udstream.euclideon.com")))); // Should disable?
+        Options_Server.Add(MakeShareable(new FString(TEXT("https://udcloud.euclideon.com")))); // UDCloud is new.
     }
 
 
@@ -160,15 +162,23 @@ void SUdSDKLoginPanel::Construct(const FArguments& InArgs)
 
 FReply SUdSDKLoginPanel::SignIn() 
 {
+    UE_LOG(LogTemp, Display, TEXT("Attemping SignIn ..."));
     GetMutableDefault<UObjectStorageSettings>()->ServerPath = FName(*ServerName);
     GetMutableDefault<UObjectStorageSettings>()->Username = FName(*UserName);
     GetMutableDefault<UObjectStorageSettings>()->Password = FName(*Password);
     GetMutableDefault<UObjectStorageSettings>()->Offline = Offline;
     SaveObjectConfig<UObjectStorageSettings>();
 
+   
     if (!UUdSDKFunctionLibrary::IsLogin())
     {
+        
         UUdSDKFunctionLibrary::Login();
+    }
+
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UUdSDKFunctionLibrary::IsLogin() returning true"));
     }
         
 
