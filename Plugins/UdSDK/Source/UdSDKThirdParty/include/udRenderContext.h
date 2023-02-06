@@ -51,6 +51,9 @@ enum udRenderContextFlags
 
   udRCF_2PixelOpt = 1 << 6, //!< Optimisation that allows the renderer to resolve the last 2 pixels simulataneously, this can result in slight inaccuracies (generally a few pixels) in the final image for a huge performance improvement.
   udRCF_DisableOrthographic = 1 << 7, //!< Disables the renderer entering high-performance orthographic mode
+
+  udRCF_NoTraversal = 1 << 8, //!< Skip octree traversal, instead reuse existing data from previous traversal
+  udRCF_DisableDrawCallFiltering = 1 << 9, //!< Disables the splitting of blocks into multiple draw calls, when a filter is active
 };
 
 //!
@@ -80,7 +83,12 @@ struct udRenderSettings
   enum udRenderContextFlags flags; //!< Optional flags providing information about how to perform this render
   struct udRenderPicking *pPick; //!< Optional This provides information about the voxel under the mouse
   enum udRenderContextPointMode pointMode; //!< The point mode for this render
-  struct udQueryFilter *pFilter; //!< Optional This filter is applied to all models in the scene
+  struct udGeometry *pFilter; //!< Optional This filter is applied to all models in the scene
+
+  uint32_t pointCount; //!< Optional (GPU Renderer) A hint to the renderer at the upper limit of voxels that are to be rendered.
+  float pointThreshold; //!< Optional (GPU Renderer) A hint of the minimum size (in screen space) of a voxel that the renderer will produce.
+
+  double forwardAxis[3]; //!< Optional (GPU Renderer) Override the forward axis of this render.
 };
 
 //!
@@ -93,10 +101,13 @@ struct udRenderInstance
   double matrix[16]; //!< The world space matrix for this point cloud instance (this does not to be the default matrix)
                      //!< @note The default matrix for a model can be accessed from the associated udPointCloudHeader
 
-  const struct udQueryFilter *pFilter; //!< Filter to override for this model, this one will be used instead of the global one applied in udRenderSettings
+  const struct udGeometry *pFilter; //!< Filter to override for this model, this one will be used instead of the global one applied in udRenderSettings
 
   uint32_t (*pVoxelShader)(struct udPointCloud *pPointCloud, const struct udVoxelID *pVoxelID, const void *pVoxelUserData); //!< When the renderer goes to select a colour, it calls this function instead
   void *pVoxelUserData; //!< If pVoxelShader is set, this parameter is passed to that function
+
+  double opacity; //!< If this is a value between 0 and 1 this model will be rendered blended with the rest of the scene. If the alpha from pVoxelShader is 0, the alpha provided will be written to the colourBuffer otherwise it will be calculated using this opacity value
+  uint32_t skipRender; //!< If set not 0 the model will not be rendered
 };
 
 //!

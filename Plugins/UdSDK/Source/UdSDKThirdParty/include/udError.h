@@ -12,7 +12,7 @@ extern "C" {
 
 
 //! When used with the udCore library the udError codes are interchangable with the udResult codes when this version number matches
-#define UD_ERROR_VERSION 2103121440U
+#define UD_ERROR_VERSION 2111031245U
 
 //!
 //! These are the various error codes returned by udSDK functions
@@ -96,6 +96,7 @@ enum udError
 
   udE_RateLimited, //!< This functionality is currently being rate limited or has exhausted a shared resource. Trying again later may be successful
   udE_PremiumOnly, //!< The requested operation failed because the current session is not for a premium user
+  udE_InProgress, //!< The requested operation is currently in progress
 
   udE_Count //!< Internally used to verify return values
 };

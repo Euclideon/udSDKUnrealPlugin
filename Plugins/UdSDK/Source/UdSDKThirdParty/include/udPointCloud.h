@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 struct udContext;
-struct udQueryFilter;
+struct udGeometry;
 
 //!
 //! @struct udVoxelID
@@ -49,6 +49,16 @@ struct udPointCloudHeader
 };
 
 //!
+//! @struct udPointCloudLoadOptions
+//! Contains additional loading options passed to `udPointCloud_LoadAdv` 
+//!
+struct udPointCloudLoadOptions
+{
+  uint32_t numberAttributesLimited; //!< indicates whether to limit attributes uing the limitAttributes array
+  uint32_t *pLimitedAttributes; //!< array of booleans corresponding to the pAttributes array in the models original udAttributeSet indicating which attributes to load from the pointcloud
+};
+
+//!
 //! @struct udPointCloud
 //! Stores the internal state of a udSDK pointcloud
 //!
@@ -66,6 +76,18 @@ struct udPointCloud;
 //!
 UDSDKDLL_API enum udError udPointCloud_Load(struct udContext *pContext, struct udPointCloud **ppModel, const char *modelLocation, struct udPointCloudHeader *pHeader);
 
+//!
+//! Load a udPointCloud from `modelLocation` with additional load options.
+//!
+//! @param pContext The context to be used to load the model.
+//! @param ppModel The pointer pointer of the udPointCloud. This will allocate an instance of `udPointCloud` into `ppModel`.
+//! @param modelLocation The location to load the model from. This may be a file location, or a supported protocol (HTTP, HTTPS, FTP).
+//! @param pHeader If non-null, the provided udPointCloudHeader structure will be writen to
+//! @param pOptions If non-null, the options to be applied when loading the model.
+//! @return A udError value based on the result of the model load.
+//! @note The application should call **udPointCloud_Unload** with `ppModel` to destroy the object once it's no longer needed.
+//!
+UDSDKDLL_API enum udError udPointCloud_LoadAdv(struct udContext *pContext, struct udPointCloud **ppModel, const char *modelLocation, struct udPointCloudHeader *pHeader, struct udPointCloudLoadOptions *pOptions);
 //!
 //! Destroys the udPointCloud.
 //!
@@ -104,7 +126,7 @@ UDSDKDLL_API enum udError udPointCloud_GetHeader(struct udPointCloud *pPointClou
 //! @return A udError value based on the result of the model export
 //! @warning If an existing file exists this function will try override it
 //!
-UDSDKDLL_API enum udError udPointCloud_Export(struct udPointCloud *pModel, const char *pExportFilename, const struct udQueryFilter *pFilter, float *pProgress);
+UDSDKDLL_API enum udError udPointCloud_Export(struct udPointCloud *pModel, const char *pExportFilename, const struct udGeometry *pFilter, float *pProgress);
 
 //!
 //! Gets the default colour for a specific voxel in a given point cloud
@@ -145,9 +167,19 @@ UDSDKDLL_API enum udError udPointCloud_GetAttributeAddress(struct udPointCloud *
 //!
 //! @param pModel The point cloud to get the status of.
 //! @return A udError value indicating the internal streamer status for this model.
-//! @note udE_Success inidcates the model is streaming successfully, other errors indicate other specific issues
+//! @note udE_Success indicates the model is streaming successfully, other errors indicate other specific issues
 //!
 UDSDKDLL_API enum udError udPointCloud_GetStreamingStatus(struct udPointCloud *pModel);
+
+//!
+//! Gets the udAttributeSet of the model
+//!
+//! @param pModel The point cloud to get original attributes of.
+//! @param pAttributeSet The attributeSet to be populated
+//! @return A udError value indicating success of fetching the attributes 
+//! @note udAttributeSet_Destroy must be called on pAttributeSet 
+//!
+UDSDKDLL_API enum udError udPointCloud_GetSourceAttributes(struct udPointCloud *pModel, struct udAttributeSet *pAttributeSet);
 
 #ifdef __cplusplus
 }
