@@ -7,6 +7,7 @@
 #include "UdSDKCompositeViewExtension.h"
 #include "UdSDKDefine.h"
 #include "Utils/CThreadPool.h"
+#include "udContext.h"
 
 uint32 CUdSDKComposite::SelectColor = 0xff0071c1;
 
@@ -194,7 +195,9 @@ int CUdSDKComposite::Login()
 		UE_LOG(LogTemp, Display, TEXT("Username: %s"), *Username);
 		UE_LOG(LogTemp, Display, TEXT("Password: %s"), *Password);
 		
-		error = udContext_Connect(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", TCHAR_TO_UTF8(*Username), TCHAR_TO_UTF8(*Password));
+		// 
+		// error = udContext_Connect(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", TCHAR_TO_UTF8(*Username), TCHAR_TO_UTF8(*Password)); // - old SDK line
+		error = udContext_ConnectLegacy(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", TCHAR_TO_UTF8(*Username), TCHAR_TO_UTF8(*Password));
 	}
 	
 	UE_LOG(LogTemp, Display, TEXT("Litteral udContext return val: %d"), error);

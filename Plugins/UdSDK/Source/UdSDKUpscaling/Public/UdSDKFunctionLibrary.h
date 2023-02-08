@@ -5,8 +5,6 @@
 
 #include "UdSDKFunctionLibrary.generated.h"
 
-
-
 typedef std::function<void()>			FunUdSDKDelegate;
 
 UCLASS()

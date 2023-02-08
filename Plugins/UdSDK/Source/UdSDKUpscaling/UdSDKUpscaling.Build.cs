@@ -14,7 +14,7 @@ public class UdSDKUpscaling : ModuleRules
 	{
 		get
 		{
-			return Path.GetFullPath(Path.Combine(ModuleDirectory, "../../../../"));//项目路径
+			return Path.GetFullPath(Path.Combine(ModuleDirectory, "../../../../"));//锟斤拷目路锟斤拷
 		}
 	}
 
@@ -107,10 +107,9 @@ public class UdSDKUpscaling : ModuleRules
 		//PublicLibraryPaths.Add(LibPath);
 		PublicAdditionalLibraries.Add(Path.Combine(LibPath, "udSDK.lib"));
 
-		PublicDelayLoadDLLs.Add(Path.Combine(LibPath, "udSDK.dll"));
-
-		//CopyToProjectBinaries(Path.Combine(LibPath, "udSDK.lib"), Target);
-		//CopyToProjectBinaries(Path.Combine(LibPath, "udSDK.dll"), Target);
+		// Public Delay Load attempts to load the DLL after program start (beacuse our DLL isn't a windows DLL)
+		PublicDelayLoadDLLs.Add(Path.Combine(LibPath, "udSDK.dll")); //Load the UDSDK DLL
+		
 		CopyToTargetBinaries(Path.Combine(LibPath, "udSDK.dll"), ProjectDirectory, Target);
 		CopyToTargetBinaries(Path.Combine(LibPath, "udSDK.dll"), PluginDirectory, Target);
 	}

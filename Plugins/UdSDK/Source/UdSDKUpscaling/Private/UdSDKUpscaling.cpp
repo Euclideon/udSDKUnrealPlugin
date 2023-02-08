@@ -6,10 +6,9 @@
 
 #define LOCTEXT_NAMESPACE "FUdSDKUpscalingModule"
 
+// Should the DLLs not load / unload in here primarily?
 void FUdSDKUpscalingModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
-
 	FString PluginShaderDir = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("UdSDK"))->GetBaseDir(), TEXT("Shaders"));
 	AddShaderSourceDirectoryMapping(TEXT("/Plugins/UdSDK"), PluginShaderDir);
 
