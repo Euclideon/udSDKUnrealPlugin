@@ -115,6 +115,7 @@ uint32 CUdSDKComposite::GetSelectColor()
 	return SelectColor;
 }
 
+// Does NOT init the udContext
 int CUdSDKComposite::Init()
 {
 	enum udError error = udE_Success;
@@ -143,18 +144,18 @@ int CUdSDKComposite::Init()
 // Called as a result of clicking Login() from the widget
 int CUdSDKComposite::Login()
 {
+	// Logging startup values at login
 	UE_LOG(LogTemp, Display, TEXT("Auth values at start of Login() function"));
-	
 	UE_LOG(LogTemp, Display, TEXT("Offline: %d"), (int)Offline);
 	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
 	UE_LOG(LogTemp, Display, TEXT("Username: %s"), *Username);
 	UE_LOG(LogTemp, Display, TEXT("Password: %s"), *Password);
-
-
 	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
 
+	// Get an error ready and default to failure
 	enum udError error = udE_Failure;
-	
+
+	// Unsure what happens to login reqs
 	if (LoginFlag)
 	{
 		UDSDK_WARNING_MSG("Have login!");
@@ -195,9 +196,14 @@ int CUdSDKComposite::Login()
 		UE_LOG(LogTemp, Display, TEXT("Username: %s"), *Username);
 		UE_LOG(LogTemp, Display, TEXT("Password: %s"), *Password);
 		
-		// 
-		// error = udContext_Connect(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", TCHAR_TO_UTF8(*Username), TCHAR_TO_UTF8(*Password)); // - old SDK line
 		error = udContext_ConnectLegacy(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", TCHAR_TO_UTF8(*Username), TCHAR_TO_UTF8(*Password));
+
+		
+		// error = udContext_ConnectStart()
+		
+        //error = udContext_ConnectLegacy(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", TCHAR_TO_UTF8(*Username), TCHAR_TO_UTF8(*Password));
+                		
+        // error = udContext_Connect(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", TCHAR_TO_UTF8(*Username), TCHAR_TO_UTF8(*Password));     		
 	}
 	
 	UE_LOG(LogTemp, Display, TEXT("Litteral udContext return val: %d"), error);
