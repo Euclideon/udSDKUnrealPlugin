@@ -162,35 +162,39 @@ int CUdSDKComposite::Login()
 		return error;
 	}
 
-	error = (udError)Init();
-	if (error != udE_Success)
+	// Initialize login related data
+	// Will fail if logins are not entered into the UI etc
+	error = (udError)Init(); // Maybe fix this cast?
+	
+	// Logging startup values at login
+	UE_LOG(LogTemp, Display, TEXT("Auth after Init() value"));
+	UE_LOG(LogTemp, Display, TEXT("Offline: %d"), (int)Offline);
+	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
+	UE_LOG(LogTemp, Display, TEXT("Username: %s"), *Username);
+	UE_LOG(LogTemp, Display, TEXT("Password: %s"), *Password);
+	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
+	
+	if (error != udE_Success) // Should fail basically due to user error only
 	{
 		UDSDK_ERROR_MSG("Initialization failed!");
 		return error;
 	}
-
-	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
-
+	
 	{
 		FScopeLock ScopeLockInst(&DataMutex);
 		InstanceArray.Reset();
 	}
-
-	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
-
+	
 	error = udConfig_IgnoreCertificateVerification(true);
-	UE_LOG(LogTemp, Display, TEXT("Litteral udContext return val: %d"), error);
 
 	if (error != udE_Success)
 	{
 		UDSDK_ERROR_MSG("udConfig_IgnoreCertificateVerification(true) error : %s", GetError(error));
 		return error;
 	}
-
 	
 	{
 		UE_LOG(LogTemp, Display, TEXT("Auth values JUST prior to attempting the direct connection"));
-		
 		UE_LOG(LogTemp, Display, TEXT("Offline: %d"), (int)Offline);
 		UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
 		UE_LOG(LogTemp, Display, TEXT("Username: %s"), *Username);
@@ -198,11 +202,12 @@ int CUdSDKComposite::Login()
 		
 		error = udContext_ConnectLegacy(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", TCHAR_TO_UTF8(*Username), TCHAR_TO_UTF8(*Password));
 
+		const char **ppApproveCode;
+		const char **ppApprovePath;
 		
+		error = udContext_ConnectStart(&pContextPartial, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", "0.0", ppApproveCode, ppApprovePath);
 		// error = udContext_ConnectStart()
-		
         //error = udContext_ConnectLegacy(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", TCHAR_TO_UTF8(*Username), TCHAR_TO_UTF8(*Password));
-                		
         // error = udContext_Connect(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", TCHAR_TO_UTF8(*Username), TCHAR_TO_UTF8(*Password));     		
 	}
 	

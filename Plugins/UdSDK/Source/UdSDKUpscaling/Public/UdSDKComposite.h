@@ -89,6 +89,7 @@ private:
 	static uint32 SelectColor;
 
 	struct udContext* pContext = NULL;
+	struct udContextPartial* pContextPartial = NULL; // New 5.1 context partial
 	struct udRenderContext* pRenderer = NULL;
 	struct udRenderTarget* pRenderView = NULL;
 
