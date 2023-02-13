@@ -142,7 +142,7 @@ int CUdSDKComposite::Init()
 }
 
 // Called as a result of clicking Login() from the widget
-int CUdSDKComposite::Login()
+int CUdSDKComposite::LoginLegacy()
 {
 	// Logging startup values at login
 	UE_LOG(LogTemp, Display, TEXT("Auth values at start of Login() function"));
@@ -184,7 +184,8 @@ int CUdSDKComposite::Login()
 		FScopeLock ScopeLockInst(&DataMutex);
 		InstanceArray.Reset();
 	}
-	
+
+	// Should keep or nah? Double check with sam
 	error = udConfig_IgnoreCertificateVerification(true);
 
 	if (error != udE_Success)
@@ -194,21 +195,26 @@ int CUdSDKComposite::Login()
 	}
 	
 	{
-		UE_LOG(LogTemp, Display, TEXT("Auth values JUST prior to attempting the direct connection"));
-		UE_LOG(LogTemp, Display, TEXT("Offline: %d"), (int)Offline);
-		UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
-		UE_LOG(LogTemp, Display, TEXT("Username: %s"), *Username);
-		UE_LOG(LogTemp, Display, TEXT("Password: %s"), *Password);
+		const FString ApplicationVersion = "0.0";
+		const FString ApplicationName = "UE5_Client";
+		const FString PKey = "NULLKEY";
 		
-		error = udContext_ConnectLegacy(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", TCHAR_TO_UTF8(*Username), TCHAR_TO_UTF8(*Password));
+		/*// Unsure if the TCHAR_TO_UTF8's are needed
+		// START THE CONNECTION
+		error = udContext_ConnectWithKey(&pContext,
+			TCHAR_TO_UTF8(*ServerUrl),
+			TCHAR_TO_UTF8(*ApplicationName),
+			TCHAR_TO_UTF8(*ApplicationVersion),
+			TCHAR_TO_UTF8(*PKey));*/
 
-		const char **ppApproveCode;
-		const char **ppApprovePath;
-		
-		error = udContext_ConnectStart(&pContextPartial, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", "0.0", ppApproveCode, ppApprovePath);
-		// error = udContext_ConnectStart()
-        //error = udContext_ConnectLegacy(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", TCHAR_TO_UTF8(*Username), TCHAR_TO_UTF8(*Password));
-        // error = udContext_Connect(&pContext, TCHAR_TO_UTF8(*ServerUrl), "UE5_Client", TCHAR_TO_UTF8(*Username), TCHAR_TO_UTF8(*Password));     		
+		error = udContext_ConnectLegacy(&pContext,
+			TCHAR_TO_UTF8(*ServerUrl),
+			TCHAR_TO_UTF8(*ApplicationName),
+			TCHAR_TO_UTF8(*Username),
+			TCHAR_TO_UTF8(*Password));
+
+
+		UE_LOG(LogTemp, Display, TEXT("Litteral udContext return val: %d"), error);
 	}
 	
 	UE_LOG(LogTemp, Display, TEXT("Litteral udContext return val: %d"), error);

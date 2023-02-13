@@ -24,7 +24,7 @@ public:
 	~CUdSDKComposite();
 
 	
-	int Login();
+	int LoginLegacy();
 	int Exit();
 
 	int Load(uint32 InUniqueID, TSharedPtr<FUdAsset> OutAssert);

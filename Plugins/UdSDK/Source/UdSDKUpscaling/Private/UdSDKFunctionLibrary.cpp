@@ -26,7 +26,7 @@ bool UUdSDKFunctionLibrary::Login()
 	int Success = -1;
 	if (CUdSDKComposite::Get())
 	{
-		Success = CUdSDKComposite::Get()->Login();
+		Success = CUdSDKComposite::Get()->LoginLegacy();
 	}
 	return Success == 0 ? true : false;
 }
