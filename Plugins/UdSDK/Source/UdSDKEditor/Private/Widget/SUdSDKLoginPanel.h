@@ -25,7 +25,7 @@ private:
 
   FString ServerName;
   FString UserName;
-  FString Password;
+  FString APIKey; // RENAME ME - APIKey
   bool Offline;
 
 };

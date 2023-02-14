@@ -14,21 +14,10 @@ DECLARE_GPU_STAT(UdSDKCompositeResolutionPass)
 
 FUdSDKCompositeUpscaler::FUdSDKCompositeUpscaler(EUdsMode InMode, TArray<TSharedPtr<FUdsData>> InViewData) : Mode(InMode) , ViewData(InViewData)
 {
-	UE_LOG(LogTemp, Display, TEXT("Constructor running ..."));
-
-	/*
-	for (auto viewData : InViewData)
-	{
-		viewData.Get().
-	}
-	*/
-	
 	if (Mode != EUdsMode::None)
 	{
-		UE_LOG(LogTemp, Display, TEXT("EUdsMode != none"));
 
 		// subpasses will run in the order in which they are registered
-		 
 		// ensure this subpass always runs first
 		RegisterSubpass<FUdsSubpassFirst>();
 		
@@ -36,6 +25,11 @@ FUdSDKCompositeUpscaler::FUdSDKCompositeUpscaler(EUdsMode InMode, TArray<TShared
 
 		// ensure this subpass always runs last.
 		RegisterSubpass<FUdsSubpassLast>();
+	}
+
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("EUdsMode == none, upscaler cannot run"));
 	}
 }
 
@@ -65,14 +59,14 @@ ISpatialUpscaler* FUdSDKCompositeUpscaler::Fork_GameThread(const class FSceneVie
 	// FSceneTextures::InitializeViewFamily(GraphBuilder, *(FViewFamilyInfo*)View.Family);
 	
 	// ViewFamily.Views[0]
-	UE_LOG(LogTemp, Warning, TEXT("Game thread fork running"));
+	//UE_LOG(LogTemp, Warning, TEXT("Game thread fork running"));
 	// the object we return here will get deleted by UE4 when the scene view tears down, so we need to instantiate a new one every frame.
 	return new FUdSDKCompositeUpscaler(Mode, ViewData);
 }
 
 FScreenPassTexture FUdSDKCompositeUpscaler::AddPasses(FRDGBuilder& GraphBuilder, const FViewInfo& View, const FInputs& PassInputs) const
 {
-	UE_LOG(LogTemp, Warning, TEXT("Add passes running"));
+	//UE_LOG(LogTemp, Warning, TEXT("Add passes running"));
 	
 	RDG_GPU_STAT_SCOPE(GraphBuilder, UdSDKCompositeResolutionPass);
 	check(PassInputs.SceneColor.IsValid());

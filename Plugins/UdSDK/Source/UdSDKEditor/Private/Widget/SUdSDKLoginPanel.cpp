@@ -46,75 +46,76 @@ void SUdSDKLoginPanel::Construct(const FArguments& InArgs)
 
     ServerName = GetMutableDefault<UObjectStorageSettings>()->ServerPath.ToString(); // Make sure to enforce the default of storage object to udcloud
     UserName = GetMutableDefault<UObjectStorageSettings>()->Username.ToString();
-    Password = GetMutableDefault<UObjectStorageSettings>()->Password.ToString();
+    APIKey = GetMutableDefault<UObjectStorageSettings>()->Password.ToString();
     Offline = GetMutableDefault<UObjectStorageSettings>()->Offline;
 
     CheckBoxs_LineState.SetNum(2); // Not sure why hardcoded
+    
     // CAUTION - These might sometimes fail to update correctly when the user inputs new login data  
     if (Options_Server.Num() <= 0) {
-        Options_Server.Add(MakeShareable(new FString(TEXT("https://udstream.euclideon.com.cn")))); // Should disable?
-        Options_Server.Add(MakeShareable(new FString(TEXT("https://udstream.euclideon.com")))); // Should disable?
+        //Options_Server.Add(MakeShareable(new FString(TEXT("https://udstream.euclideon.com.cn")))); // Should disable?
+        //Options_Server.Add(MakeShareable(new FString(TEXT("https://udstream.euclideon.com")))); // Should disable?
         Options_Server.Add(MakeShareable(new FString(TEXT("https://udcloud.euclideon.com")))); // UDCloud is new.
     }
 
 
   TSharedPtr<SGridPanel> loginInfomation = SNew(SGridPanel)
-            .FillColumn(0, 1).FillColumn(1, 3)
-            .FillRow(0, 1).FillRow(1, 1).FillRow(2, 1)
-            + SGridPanel::Slot(0, 0).HAlign(HAlign_Left).VAlign(VAlign_Center).Padding(5)
-            [
-                SNew(STextBlock).Text(FText::FromString(TEXT("Server")))
-            ]
-            + SGridPanel::Slot(0, 1).HAlign(HAlign_Left).VAlign(VAlign_Center).Padding(5)
-            [
-                SNew(STextBlock).Text(FText::FromString(TEXT("Email")))
-            ]
-            + SGridPanel::Slot(0, 2).HAlign(HAlign_Left).VAlign(VAlign_Center).Padding(5)
-            [
-                SNew(STextBlock).Text(FText::FromString(TEXT("Password")))
-            ]
-            + SGridPanel::Slot(1, 0).HAlign(HAlign_Fill).VAlign(VAlign_Center).Padding(5)
-            [
-                SNew(SComboBox<TSharedPtr<FString>>)
-                .OnGenerateWidget_Lambda(
-                [](TSharedPtr<FString> Item)
-                {
-                    return SNew(STextBlock).Text(FText::FromString(*Item));
-                })
-                .OnSelectionChanged_Lambda(
-                [this](TSharedPtr<FString> Item, ESelectInfo::Type Type)
-                {
-                    if (ComboText_Server.IsValid()) {
-                        ComboText_Server->SetText(FText::FromString(*Item));
-                        ServerName = *Item;
-                    }
-                })
-                .OptionsSource(&Options_Server)
-                [
-                    SAssignNew(ComboText_Server, STextBlock).
-                    Text(FText::FromString(*ServerName))
-                ]
-            ]
-            + SGridPanel::Slot(1, 1).HAlign(HAlign_Fill).VAlign(VAlign_Center).Padding(5)
-            [
-                SNew(SEditableTextBox)
-                .OnTextChanged_Lambda([this](const FText& NewText) {
-                    UserName = NewText.ToString();
-                })
-                .Text(FText::FromString(*UserName))
-            ]
-            + SGridPanel::Slot(1, 2).HAlign(HAlign_Fill).VAlign(VAlign_Center).Padding(5)
-            [
-                SNew(SEditableTextBox)
-                .OnTextChanged_Lambda([this](const FText& NewText) {
-                    Password = NewText.ToString();
-                })
-                .Text(FText::FromString(*Password))
-                    .IsPassword_Lambda([]()->bool {
-                    return true;
-                })
-            ];
-           
+    .FillColumn(0, 1).FillColumn(1, 3)
+    .FillRow(0, 1).FillRow(1, 1).FillRow(2, 1)
+    + SGridPanel::Slot(0, 0).HAlign(HAlign_Left).VAlign(VAlign_Center).Padding(5)
+    [
+        SNew(STextBlock).Text(FText::FromString(TEXT("Server")))
+    ]
+    + SGridPanel::Slot(0, 1).HAlign(HAlign_Left).VAlign(VAlign_Center).Padding(5)
+    [
+        SNew(STextBlock).Text(FText::FromString(TEXT("Email")))
+    ]
+    + SGridPanel::Slot(0, 2).HAlign(HAlign_Left).VAlign(VAlign_Center).Padding(5)
+    [
+        SNew(STextBlock).Text(FText::FromString(TEXT("APIKey")))
+    ]
+    + SGridPanel::Slot(1, 0).HAlign(HAlign_Fill).VAlign(VAlign_Center).Padding(5)
+    [
+        SNew(SComboBox<TSharedPtr<FString>>)
+        .OnGenerateWidget_Lambda(
+        [](TSharedPtr<FString> Item)
+        {
+            return SNew(STextBlock).Text(FText::FromString(*Item));
+        })
+        .OnSelectionChanged_Lambda(
+        [this](TSharedPtr<FString> Item, ESelectInfo::Type Type)
+        {
+            if (ComboText_Server.IsValid()) {
+                ComboText_Server->SetText(FText::FromString(*Item));
+                ServerName = *Item;
+            }
+        })
+        .OptionsSource(&Options_Server)
+        [
+            SAssignNew(ComboText_Server, STextBlock).
+            Text(FText::FromString(*ServerName))
+        ]
+    ]
+    + SGridPanel::Slot(1, 1).HAlign(HAlign_Fill).VAlign(VAlign_Center).Padding(5)
+    [
+        SNew(SEditableTextBox)
+        .OnTextChanged_Lambda([this](const FText& NewText) {
+            UserName = NewText.ToString();
+        })
+        .Text(FText::FromString(*UserName))
+    ]
+    + SGridPanel::Slot(1, 2).HAlign(HAlign_Fill).VAlign(VAlign_Center).Padding(5)
+    [
+        SNew(SEditableTextBox)
+        .OnTextChanged_Lambda([this](const FText& NewText) {
+            APIKey = NewText.ToString();
+        })
+        .Text(FText::FromString(*APIKey))
+            .IsPassword_Lambda([]()->bool {
+            return true;
+        })
+    ];
+   
 
   TSharedPtr<SVerticalBox> connectionWidget =
       SNew(SVerticalBox) +
@@ -165,14 +166,13 @@ FReply SUdSDKLoginPanel::SignIn()
     UE_LOG(LogTemp, Display, TEXT("Attemping SignIn ..."));
     GetMutableDefault<UObjectStorageSettings>()->ServerPath = FName(*ServerName);
     GetMutableDefault<UObjectStorageSettings>()->Username = FName(*UserName);
-    GetMutableDefault<UObjectStorageSettings>()->Password = FName(*Password);
+    GetMutableDefault<UObjectStorageSettings>()->Password = FName(*APIKey);
     GetMutableDefault<UObjectStorageSettings>()->Offline = Offline;
     SaveObjectConfig<UObjectStorageSettings>();
 
    
     if (!UUdSDKFunctionLibrary::IsLogin())
     {
-        
         UUdSDKFunctionLibrary::Login();
     }
 

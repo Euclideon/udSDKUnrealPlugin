@@ -84,12 +84,12 @@ private:
 
 	FString ServerUrl;
 	FString Username;
-	FString Password;
+	FString APIKey;
 	bool Offline;
 	static uint32 SelectColor;
 
 	struct udContext* pContext = NULL;
-	struct udContextPartial* pContextPartial = NULL; // New 5.1 context partial
+	struct udContextPartial* pContextPartial = NULL; // New 5.1 context partial for web based logins
 	struct udRenderContext* pRenderer = NULL;
 	struct udRenderTarget* pRenderView = NULL;
 
@@ -100,14 +100,11 @@ private:
 	int Height = 0;
 
 	bool LoadRunning;
-	//TArray<TSharedPtr<FUdAsset>> AssetArray;
-	//FCriticalSection InstanceArrayMutex;
-
+	
 	FCriticalSection DataMutex;
 
 	TArray<udRenderInstance> InstanceArray;
 	
-	//FCriticalSection AssetsMapMutex;
 	TMap<uint32, TSharedPtr<FUdAsset>> AssetsMap;
 
 	FCriticalSection BulkDataMutex;

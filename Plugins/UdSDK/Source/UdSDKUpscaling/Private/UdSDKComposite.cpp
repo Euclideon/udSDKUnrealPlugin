@@ -124,17 +124,17 @@ int CUdSDKComposite::Init()
 	{
 		ServerUrl = Settings->ServerPath.ToString();
 		Username = Settings->Username.ToString();
-		Password = Settings->Password.ToString();
+		APIKey = Settings->Password.ToString();
 		Offline = Settings->Offline;
 		SelectColor = Settings->SelectColor.DWColor();
-		if((ServerUrl.IsEmpty() || Username.IsEmpty() || Password.IsEmpty()) && !Offline)
+		if((ServerUrl.IsEmpty() || Username.IsEmpty() || APIKey.IsEmpty()) && !Offline)
 			error = udE_Failure;
 	}
 	else
 	{
 		ServerUrl = "";
 		Username = "";
-		Password = "";
+		APIKey = "";
 		Offline = false;
 		error = udE_Failure;
 	}
@@ -149,7 +149,7 @@ int CUdSDKComposite::LoginLegacy()
 	UE_LOG(LogTemp, Display, TEXT("Offline: %d"), (int)Offline);
 	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
 	UE_LOG(LogTemp, Display, TEXT("Username: %s"), *Username);
-	UE_LOG(LogTemp, Display, TEXT("Password: %s"), *Password);
+	// UE_LOG(LogTemp, Display, TEXT("Password: %s"), *APIKey);
 	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
 
 	// Get an error ready and default to failure
@@ -171,12 +171,16 @@ int CUdSDKComposite::LoginLegacy()
 	UE_LOG(LogTemp, Display, TEXT("Offline: %d"), (int)Offline);
 	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
 	UE_LOG(LogTemp, Display, TEXT("Username: %s"), *Username);
-	UE_LOG(LogTemp, Display, TEXT("Password: %s"), *Password);
+	// UE_LOG(LogTemp, Display, TEXT("Password: %s"), *APIKey); // Probably dont want to log API keys maybe
 	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
 	
 	if (error != udE_Success) // Should fail basically due to user error only
 	{
 		UDSDK_ERROR_MSG("Initialization failed!");
+		UE_LOG(LogTemp, Warning, TEXT("Auth values after failing initialization: "));
+		UE_LOG(LogTemp, Warning, TEXT("Offline: %d"), (int)Offline);
+		UE_LOG(LogTemp, Warning, TEXT("Server: %s"), *ServerUrl);
+		UE_LOG(LogTemp, Warning, TEXT("Username: %s"), *Username);
 		return error;
 	}
 	
@@ -186,7 +190,7 @@ int CUdSDKComposite::LoginLegacy()
 	}
 
 	// Should keep or nah? Double check with sam
-	error = udConfig_IgnoreCertificateVerification(true);
+	error = udConfig_IgnoreCertificateVerification(true); // Not sure if we still need this?
 
 	if (error != udE_Success)
 	{
@@ -197,27 +201,23 @@ int CUdSDKComposite::LoginLegacy()
 	{
 		const FString ApplicationVersion = "0.0";
 		const FString ApplicationName = "UE5_Client";
-		const FString PKey = "NULLKEY";
-		
-		/*// Unsure if the TCHAR_TO_UTF8's are needed
-		// START THE CONNECTION
+
 		error = udContext_ConnectWithKey(&pContext,
 			TCHAR_TO_UTF8(*ServerUrl),
 			TCHAR_TO_UTF8(*ApplicationName),
 			TCHAR_TO_UTF8(*ApplicationVersion),
-			TCHAR_TO_UTF8(*PKey));*/
+			TCHAR_TO_UTF8(*APIKey));
 
-		error = udContext_ConnectLegacy(&pContext,
+		/*error = udContext_ConnectLegacy(&pContext,
 			TCHAR_TO_UTF8(*ServerUrl),
 			TCHAR_TO_UTF8(*ApplicationName),
 			TCHAR_TO_UTF8(*Username),
-			TCHAR_TO_UTF8(*Password));
-
-
-		UE_LOG(LogTemp, Display, TEXT("Litteral udContext return val: %d"), error);
+			TCHAR_TO_UTF8(*Password));*/
+		
+		//UE_LOG(LogTemp, Display, TEXT("Litteral udContext return val: %d"), error);
 	}
 	
-	UE_LOG(LogTemp, Display, TEXT("Litteral udContext return val: %d"), error);
+	//UE_LOG(LogTemp, Display, TEXT("Litteral udContext return val: %d"), error);
 
 	if (error != udE_Success)
 	{
@@ -241,6 +241,7 @@ int CUdSDKComposite::LoginLegacy()
 		UDSDK_WARNING_MSG("The ViewExtension object already exists");
 	}
 
+	/*
 	// Print debug info
 	UDSDK_SCREENDE_SUCCESS_MSG("Successfully Logged in!");
 	UDSDK_SCREENDE_SUCCESS_MSG("Offline : %d", (int)Offline);
@@ -248,6 +249,7 @@ int CUdSDKComposite::LoginLegacy()
 	UDSDK_SCREENDE_SUCCESS_MSG("Username : %s", *Username);
 	// UDSDK_SUCCESS_MSG("Password : %s", *Password);
 	UDSDK_SCREENDE_SUCCESS_MSG("Login to the UDServer : %s", GetError(error));
+	*/
 	
 	LoginFlag = true;
 	LoginDelegate.Broadcast();
@@ -265,7 +267,7 @@ int CUdSDKComposite::Exit()
 
 	ServerUrl = ""; // udstream.euclideon.com and udcloud.euclideon.com
 	Username = "";
-	Password = "";
+	APIKey = "";
 	Offline = false;
 
 	Width = 0;
