@@ -9,17 +9,45 @@
 // =====================================================================================
 
 Texture2D           InputTexture;
-Texture2D<float>    DepthTexture;
+Texture2D<float>    DepthTexture; // Original
+SamplerState    DepthTextureSampler; 
 Texture2D           UdColorTexture;
 Texture2D<float>    UdDepthTexture;
-	
+
+float ColorDepthRatioX;
+float ColorDepthRatioY;
+
+// PassParameters is used to hand off content tto the .usf files
+// PassParameters->Composite.ColorDepthRatioX = Data->ColorDepthExtentRatio.X;
+
+// TODO - Investigate more thoroughly
+// Special work needs to be done here to factor in that the editor has a depth resizing "bug" that shipping doesnt.
+
+// FAILS TO COMPILE?
 void MainPS(noperspective float4 UVAndScreenPos : TEXCOORD0, float4 SvPosition : SV_POSITION, out float4 OutColor : SV_Target0)
 {
 	float2 BufferUV = SvPosition.xy;
-	float fDepth = DepthTexture[BufferUV].x;
-	float fUdDepth = UdDepthTexture[BufferUV].x;
+	float2 BufferUV2 = BufferUV;
+
+	// Scale buffer UV2 to match the editor
+	//BufferUV2.x /= ColorDepthRatioX;
+	//BufferUV2.y /= ColorDepthRatioY; <- Working paul lines
+	
+	// In the editor the buffer UV value isn't actually correctly sized
+	float fDepth = DepthTexture[BufferUV2].x; // ORIGINAL bug causing line
+
+	// fUdDepth = UdDepthTexture[BufferUV].x;
+
+	// Original lines with "BufferUV"
+	//float fUdDepth = UdDepthTexture[BufferUV].x; 
+	//float4 Color = InputTexture[BufferUV];
+	//float4 UdColor = float4(UdColorTexture[BufferUV].xyz,0.0f);
+
+	float fUdDepth = UdDepthTexture[BufferUV].x; 
 	float4 Color = InputTexture[BufferUV];
 	float4 UdColor = float4(UdColorTexture[BufferUV].xyz,0.0f);
+
+	
 	float fUdDepth_tmp = 1.0f - fUdDepth;
 
 	if(fUdDepth_tmp < fDepth || fUdDepth == 1.0f)

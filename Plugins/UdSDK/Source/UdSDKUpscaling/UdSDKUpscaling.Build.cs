@@ -80,6 +80,7 @@ public class UdSDKUpscaling : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
+				"UdSDK", "UdSDK"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

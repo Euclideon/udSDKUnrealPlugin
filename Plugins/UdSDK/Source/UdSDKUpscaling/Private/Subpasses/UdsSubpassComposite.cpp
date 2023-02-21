@@ -4,6 +4,9 @@
 // #include "SceneRenderTargets.h"
 #include "EdGraphSchema_K2_Actions.h"
 #include "ExternalTexture.h"
+#include "UdSDKSubsystem.h"
+// #include "UdSDKSubsystem.h"
+
 #include "Runtime/Renderer/Private/SceneRendering.h"
 
 static int32 GUdsComposite = 1;
@@ -50,6 +53,7 @@ void FUdsSubpassComposite::ParseEnvironment(FRDGBuilder& GraphBuilder, const FVi
 // The scene depth texture can be invalid in the first few frames of the post processing execution, so thats whats causing the headache.
 void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FViewInfo& View, const FInputs& PassInputs)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Create resources running ..."));
 	// Immediately after a return here // error  FParameters::Composite::DepthTexture was not set. throws
 	// UE_LOG(LogTemp, Warning, TEXT("Returning early as a test"));
 	// return;
@@ -57,6 +61,14 @@ void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FVie
 	// check(false); // Adding here so i dont get lost
 	if (Data->bEnabled) // We can't at all prevent execution here or we throw nulls later right?
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Create resources AND data valid running ..."));
+		// Cache a ref to the subsystem
+		// Can use this as a generic singleton to store UD related data
+		UUdSDKSubsystem* udSubsystem = GEngine->GetEngineSubsystem<UUdSDKSubsystem>();
+
+		
+
+		
 		// trying to prevent Resource->bProduced || Resource->bExternal || Resource->bQueuedForUpload error on texture
 		
 		// These are the original 4.27 lines that needed to be refactored beacuse FSceneRenderTargets has been replaced with FSceneTextures
@@ -75,67 +87,51 @@ void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FVie
 			UE_LOG(LogTemp, Warning, TEXT("Scene textures are not ready yet"));
 		}
 
-		// Queue the extraction of the texture
-		//TRefCountPtr<IPooledRenderTarget> FrameCurDepth;
-		//GraphBuilder.QueueTextureExtraction(View.GetSceneTextures().Depth.Resolve, &FrameCurDepth);
-		//Data->SceneDepthTexture = GraphBuilder.RegisterExternalTexture(FrameCurDepth);
-		
-	
-		
-		// Grab a ref to the depth texture of the current views scene textures
-		// Must call InitializeViewFamily before accessing
-		// FRDGTextureRef CurSceneDepth = CurSceneDepth = View.GetSceneTextures().Depth.Target;
-
-		// CurSceneDepth->HasBeenProduced();
-
-
 		// Depth fails the following conditions: Resource->bProduced || Resource->bExternal || Resource->bQueuedForUpload
-		// This technically works, but fails early beacuse the depth isn't produced until after the first few frames
+		// This technically works, but can fail early because the depth isn't produced until after the first few frames
 		Data->SceneDepthTexture = View.GetSceneTextures().Depth.Target; // Should register external instead?
-		Data->SceneDepthTexture->HasBeenProduced();
-		
-		/*
-		// Create buffer
-		FRDGTextureDesc Description;
-		Description.Reset();
-		Description.Extent = FIntPoint(1, 1);
-		Description.Format = PF_FloatRGBA;
-		Description.ClearValue = FClearValueBinding(FLinearColor::Transparent);
-		FString PassName = "DummyPassName";
-		FRDGTextureRef MixTexture = GraphBuilder.CreateTexture(Description, *PassName);
-		*/
-		
-		// Data->SceneDepthTexture = MixTexture; // Also throws the same error as testing the scene depth directly
 
 		
 		
-		//GraphBuilder.RegisterExternalTexture();
+		// Get the size
+		FIntPoint DepthExtent = View.GetSceneTextures().Depth.Target->Desc.Extent; // This is grabbed now
+		FVector2d DepthExtentF = FVector2d(DepthExtent.X, DepthExtent.Y);
 
-		// FExternalTextureRegistry
+		FIntPoint ColorExtent = PassInputs.SceneColor.Texture->Desc.Extent; // This is passed in early
+		FVector2d ColorExtentF = FVector2d(ColorExtent.X, ColorExtent.Y);
 
 
-		// qQueuedforUpload apears to be false early
-		/**/
-		/*
-		if(CurSceneDepth->HasBeenProduced())
+
+		// if the system is valid, set some data about what we intend to render
+		if (IsValid(udSubsystem))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Scene depth target has been produced"));
+			UE_LOG(LogTemp, Warning, TEXT("Subsystem is valid, depth: - X: %d, Y: %d"), DepthExtent.X , DepthExtent.Y);
+
+			// We save a copy of the buffer width and height so that when we ask UD for a render, we have the correct dimensions
+			udSubsystem->SetDepthExtents(DepthExtent.X, DepthExtent.Y);
+			// udSubsystem->SetColorExtents(ColorExtent.X, ColorExtent.Y);
+
 		}
 
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Scene depth target has not been produced yet"));
+			UE_LOG(LogTemp, Warning, TEXT("Subsystem in udsubpasscomposit is NOT valid ..."));
 		}
 
-		if(CurSceneDepth->IsExternal())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Scene depth target is external"));
-		}
+		UE_LOG(LogTemp, Warning, TEXT("DepthExtentF - X: %f, Y: %f"), DepthExtentF.X , DepthExtentF.Y);
+		UE_LOG(LogTemp, Warning, TEXT("ColorExtentF - X: %f, Y: %f"), ColorExtentF.X , ColorExtentF.Y);
+		
+		Data->ColorDepthExtentRatio.X = ColorExtentF.X/DepthExtentF.X;
+		Data->ColorDepthExtentRatio.Y = ColorExtentF.Y/DepthExtentF.Y;
+		
+		UE_LOG(LogTemp, Warning, TEXT("LITTERAL val: %f"), ColorExtentF.X);
+		UE_LOG(LogTemp, Warning, TEXT("LITTERAL val: %f"), DepthExtentF.X);
+		UE_LOG(LogTemp, Warning, TEXT("DepthExtent - X: %d, Y: %d"), DepthExtent.X , DepthExtent.Y);
+		
+		UE_LOG(LogTemp, Warning, TEXT("Ratio at time of CreateResources - X: %f, Y: %f"),Data->ColorDepthExtentRatio.X ,Data->ColorDepthExtentRatio.Y );
 
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Scene depth target is NOT external"));
-		}*/
+		
+		//static_cast<float>
 		
 		// CurSceneDepth.
 
@@ -145,6 +141,7 @@ void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FVie
 		Data->CurrentInputTexture = PassInputs.SceneColor.Texture;
 		Data->OutputViewport = FScreenPassTextureViewport(PassInputs.SceneColor);
 		Data->InputViewport = FScreenPassTextureViewport(PassInputs.SceneColor);
+
 	}
 
 	// Wondering if this edge case is ever viable to handle or if it throws exceptions later
@@ -166,9 +163,18 @@ void FUdsSubpassComposite::PostProcess(FRDGBuilder& GraphBuilder, const FViewInf
 		PassParameters->Composite.DepthTexture = Data->SceneDepthTexture;
 		PassParameters->Composite.UdColorTexture = Data->UdColorTexture->GetTexture2D();
 		PassParameters->Composite.UdDepthTexture = Data->UdDepthTexture->GetTexture2D();
-
 		PassParameters->RenderTargets[0] = FRenderTargetBinding(Output.Texture, ERenderTargetLoadAction::ENoAction);
 
+		// Save the ratio to correct the editor depth size bug
+		PassParameters->Composite.ColorDepthRatioX = Data->ColorDepthExtentRatio.X;
+		PassParameters->Composite.ColorDepthRatioY = Data->ColorDepthExtentRatio.Y;
+
+		//UE_LOG(LogTemp, Warning, TEXT("The float value is: %f"), Data->ColorDepthExtentRatio.Y);
+		UE_LOG(LogTemp, Warning, TEXT("Ratio at time of PostProcess - X: %f, Y: %f"),Data->ColorDepthExtentRatio.X ,Data->ColorDepthExtentRatio.Y );
+
+		
+		
+		
 		TShaderMapRef<FUdsCompositePS> PixelShader(View.ShaderMap);
 
 		AddDrawScreenPass(GraphBuilder,

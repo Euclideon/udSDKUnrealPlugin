@@ -29,6 +29,10 @@ void FUdSDKCompositeViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSc
 //PRAGMA_DISABLE_OPTIMIZATION
 void FUdSDKCompositeViewExtension::BeginRenderViewFamily(FSceneViewFamily& InViewFamily)
 {
+	// TODO - It would be ideal if this function could correctly marshal the true depth buffer width/height down into the CaptureUDSImage call below
+	// I'm unsure of how to do that right now, so for now these values are being cached into a UDSDK engine singleton
+	// but this really should be refactored at a later date.
+	
 	if (!CUdSDKComposite::Get() ||
 		InViewFamily.Views.Num() == 0)
 	{

@@ -17,6 +17,7 @@ DECLARE_MULTICAST_DELEGATE(FUdLoginDelegate);
 DECLARE_MULTICAST_DELEGATE(FUdExitDelegate);
 
 class FUdSDKCompositeViewExtension;
+// TODO - Keep singleton or use EngineSubsystem?
 class CUdSDKComposite : public CSingleton<CUdSDKComposite>
 {
 public:
@@ -24,7 +25,7 @@ public:
 	~CUdSDKComposite();
 
 	
-	int LoginLegacy();
+	int LoginFunction();
 	int Exit();
 
 	int Load(uint32 InUniqueID, TSharedPtr<FUdAsset> OutAssert);
@@ -96,8 +97,9 @@ private:
 	double ViewArray[16] = {0};
 	double ProjArray[16] = {0};
 
-	int Width = 0;
-	int Height = 0;
+	// TODO - Are these effectively the same as the width/height values in the other singleton?
+	int32 Width = 0;
+	int32 Height = 0;
 
 	bool LoadRunning;
 	
@@ -108,7 +110,7 @@ private:
 	TMap<uint32, TSharedPtr<FUdAsset>> AssetsMap;
 
 	FCriticalSection BulkDataMutex;
-	FUdSDKResourceBulkData<FColor> ColorBulkData;
+	FUdSDKResourceBulkData<FColor>ColorBulkData;
 	FUdSDKResourceBulkData<float> DepthBulkData;
 
 	FMatrix ProjectionMatrix;

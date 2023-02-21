@@ -17,6 +17,10 @@
 		{
 			"Name": "UdSDK",
 			"Enabled": true
+		},
+		{
+			"Name": "RenderDocPlugin",
+			"Enabled": true
 		}
 	]
 }

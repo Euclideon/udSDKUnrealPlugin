@@ -20,4 +20,6 @@ struct FUdsData
 	FTexture2DRHIRef UdColorTexture;
 	FTexture2DRHIRef UdDepthTexture;
 	FScreenPassTexture FinalOutput;
+
+	FVector2d ColorDepthExtentRatio; // Adding
 };

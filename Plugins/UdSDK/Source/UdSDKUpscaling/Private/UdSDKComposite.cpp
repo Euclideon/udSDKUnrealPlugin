@@ -9,6 +9,8 @@
 #include "Utils/CThreadPool.h"
 #include "udContext.h"
 
+#include "UdSDK/Public/UdSDKSubsystem.h"
+
 uint32 CUdSDKComposite::SelectColor = 0xff0071c1;
 
 template <typename ValueType>
@@ -142,7 +144,7 @@ int CUdSDKComposite::Init()
 }
 
 // Called as a result of clicking Login() from the widget
-int CUdSDKComposite::LoginLegacy()
+int CUdSDKComposite::LoginFunction()
 {
 	// Logging startup values at login
 	UE_LOG(LogTemp, Display, TEXT("Auth values at start of Login() function"));
@@ -181,6 +183,8 @@ int CUdSDKComposite::LoginLegacy()
 		UE_LOG(LogTemp, Warning, TEXT("Offline: %d"), (int)Offline);
 		UE_LOG(LogTemp, Warning, TEXT("Server: %s"), *ServerUrl);
 		UE_LOG(LogTemp, Warning, TEXT("Username: %s"), *Username);
+		
+		UE_LOG(LogTemp, Warning, TEXT("Current State of Connect Attempt: %d "), error);
 		return error;
 	}
 	
@@ -207,18 +211,13 @@ int CUdSDKComposite::LoginLegacy()
 			TCHAR_TO_UTF8(*ApplicationName),
 			TCHAR_TO_UTF8(*ApplicationVersion),
 			TCHAR_TO_UTF8(*APIKey));
-
-		/*error = udContext_ConnectLegacy(&pContext,
-			TCHAR_TO_UTF8(*ServerUrl),
-			TCHAR_TO_UTF8(*ApplicationName),
-			TCHAR_TO_UTF8(*Username),
-			TCHAR_TO_UTF8(*Password));*/
-		
-		//UE_LOG(LogTemp, Display, TEXT("Litteral udContext return val: %d"), error);
 	}
-	
-	//UE_LOG(LogTemp, Display, TEXT("Litteral udContext return val: %d"), error);
 
+	// Log the error state
+	UE_LOG(LogTemp, Warning, TEXT("%s, Current State of Connect Attempt: %d "), TEXT(__FUNCTION__), error);
+
+	
+	
 	if (error != udE_Success)
 	{
 		UDSDK_ERROR_MSG("udContext_Connect error : %s Offline : %d", GetError(error), (int)Offline);
@@ -240,16 +239,6 @@ int CUdSDKComposite::LoginLegacy()
 	{
 		UDSDK_WARNING_MSG("The ViewExtension object already exists");
 	}
-
-	/*
-	// Print debug info
-	UDSDK_SCREENDE_SUCCESS_MSG("Successfully Logged in!");
-	UDSDK_SCREENDE_SUCCESS_MSG("Offline : %d", (int)Offline);
-	UDSDK_SCREENDE_SUCCESS_MSG("Server : %s", *ServerUrl);
-	UDSDK_SCREENDE_SUCCESS_MSG("Username : %s", *Username);
-	// UDSDK_SUCCESS_MSG("Password : %s", *Password);
-	UDSDK_SCREENDE_SUCCESS_MSG("Login to the UDServer : %s", GetError(error));
-	*/
 	
 	LoginFlag = true;
 	LoginDelegate.Broadcast();
@@ -326,6 +315,7 @@ int CUdSDKComposite::Exit()
 	ExitLaterDelegate.Broadcast();
 	return error;
 }
+
 //PRAGMA_DISABLE_OPTIMIZATION
 int CUdSDKComposite::Load(uint32 InUniqueID, TSharedPtr<FUdAsset> OutAssert)
 {
@@ -754,32 +744,74 @@ int CUdSDKComposite::SetSelectedByModelIndex(uint32 InModelIndex, bool InSelect)
 	return error;
 }
 //PRAGMA_DISABLE_OPTIMIZATION
+// The main function for rendering out UD images
 int CUdSDKComposite::CaptureUDSImage(const FSceneView& View)
 {
-	//FScopeLock ScopeLockCall(&CallMutex);
+	// TODO - If Correct width/height can be marshaled into this function, we may not require the EngineSubsystem below
+	// possible refactor here later ...
+	UUdSDKSubsystem* udSingletonSubSystem = GEngine->GetEngineSubsystem<UUdSDKSubsystem>();
 
+	// prep an empty error
 	enum udError error = udE_Failure;
-
+	
 	if (!LoginFlag)
 	{
-		//UDSDK_ERROR_MSG("Not logged in!");
 		return error;
 	}
 
 	{
 		FScopeLock ScopeLock(&DataMutex);
 		if (InstanceArray.Num() == 0)
+		{
 			return error;
+		}
 	}
 	
+	// These values are incorrect, but are at least visually plausable.
+	// If we can however get our singleton correctly, we should use the more accurate values contained within that
+	// auto vartest = View.UnconstrainedViewRect.Width();
+	int32 nWidth = View.UnconstrainedViewRect.Width();
+	int32 nHeight = View.UnconstrainedViewRect.Height();
 
+	
+	UE_LOG(LogTemp, Display, TEXT("%s: Unscaled Width: %d, Unscaled Height: %d"), TEXT(__FUNCTION__), View.UnscaledViewRect.Width(), View.UnscaledViewRect.Height());
+	
+	// Subsystem is valid, we can get better values here
+	// We need to ensure the values are reasonable beacuse they can begin with junk values
+	if (udSingletonSubSystem != nullptr) // Better way to check this?
+	{
+		UE_LOG(LogTemp, Display, TEXT("%s: Subsystem Width: %d, Height: %d."), TEXT(__FUNCTION__), udSingletonSubSystem->Width(), udSingletonSubSystem->Height());
+		
+		// Get the width
+		if (udSingletonSubSystem->Width() > 0 && udSingletonSubSystem->Width() < 2048)
+		{
+			//nWidth = udSingletonSubSystem->Width();
+		}
+		
+		// Get the height
+		if (udSingletonSubSystem->Height() > 0 && udSingletonSubSystem->Height() < 2048)
+		{
+			///nHeight = udSingletonSubSystem->Height();
+		}
+	}
 
-	uint32 nWidth = View.UnconstrainedViewRect.Width();
-	uint32 nHeight = View.UnconstrainedViewRect.Height();
-	if (nWidth == 0 || nHeight == 0)
+	// Return early if we have really invalid values?
+	if (nWidth <= 0 || nHeight <= 0)
+	{
+		UDSDK_ERROR_MSG("Error, width or height = 0 : %s", GetError(error));
 		return error;
+	}
 
+	// Hardcap the render to some reasonable number
+	// TODO - Probably want to handle this better
+	if (nWidth >= 2048 || nHeight >= 2048)
+	{
+		UDSDK_ERROR_MSG("Error, width or height too big : %s", GetError(error));
+		return error;
+	}
+	
 	error = (udError)RecreateUDView(nWidth, nHeight, View.FOV);
+	
 	if (error != udE_Success)
 	{
 		UDSDK_ERROR_MSG("RecreateUDView error : %s", GetError(error));
@@ -802,6 +834,7 @@ int CUdSDKComposite::CaptureUDSImage(const FSceneView& View)
 
 		error = udRenderTarget_SetMatrix(pRenderView, udRTM_Projection, ProjArray);
 		error = udRenderTarget_SetMatrix(pRenderView, udRTM_View, ViewArray);
+		
 		if (error != udE_Success)
 		{
 			UDSDK_ERROR_MSG("udRenderTarget_SetMatrix error : %s", GetError(error));
@@ -810,17 +843,13 @@ int CUdSDKComposite::CaptureUDSImage(const FSceneView& View)
 
 		udRenderPicking picking = {};
 
-		
-		//const FVector2D CursorPos = FSlateApplication::Get().GetCursorPos();
-		//picking.x = CursorPos.X;
-		//picking.y = CursorPos.Y;
-		
 		udRenderSettings renderOptions;
 		memset(&renderOptions, 0, sizeof(udRenderSettings));
+		
 		renderOptions.pPick = &picking;
 		renderOptions.pFilter = nullptr;
 		renderOptions.pointMode = udRCPM_Rectangles;
-
+		
 		error = udRenderContext_Render(pRenderer, pRenderView, InstanceArray.GetData(), InstanceArray.Num(), &renderOptions);
 		if (error != udE_Success)
 		{
@@ -828,7 +857,7 @@ int CUdSDKComposite::CaptureUDSImage(const FSceneView& View)
 			return error;
 		}
 
-
+		// TODO - Add picking back in
 		if (picking.hit)
 		{
 		//	SetSelectedByModelIndex(picking.modelIndex, true);
@@ -856,7 +885,7 @@ int CUdSDKComposite::CaptureUDSImage(const FSceneView& View)
 		}
 		if (DepthTexture.IsValid() && DepthTexture->GetSizeX() == Width && DepthTexture->GetSizeY() == Height)
 		{
-			auto Region = FUpdateTextureRegion2D(0, 0, 0, 0, Width, Height);
+			auto Region = FUpdateTextureRegion2D(0, 0, 0, 0, Width, Height); // check this maybe?
 			RHIUpdateTexture2D(DepthTexture.GetReference(), 0, Region, DepthBulkData.GetTypeSize() * Region.Width, (uint8*)DepthBulkData.GetData());
 
 			//uint32 Stride = 0;
@@ -872,7 +901,7 @@ int CUdSDKComposite::CaptureUDSImage(const FSceneView& View)
 }
 
 //PRAGMA_ENABLE_OPTIMIZATION
-int CUdSDKComposite::RecreateUDView(int InWidth, int InHeight, float InFOV)
+int CUdSDKComposite::RecreateUDView(int32 InWidth, int32 InHeight, float InFOV)
 {
 	enum udError error = udE_Success;
 	if (InWidth == Width && InHeight == Height)
@@ -882,6 +911,9 @@ int CUdSDKComposite::RecreateUDView(int InWidth, int InHeight, float InFOV)
 
 	Width = InWidth;
 	Height = InHeight;
+
+	UE_LOG(LogTemp, Display, TEXT("RecreateUDView() Width: %d, Height: %d"), Width, Height);
+			
 
 	const float MinZ = GNearClippingPlane;
 	const float MaxZ = MinZ;
@@ -904,34 +936,48 @@ int CUdSDKComposite::RecreateUDView(int InWidth, int InHeight, float InFOV)
 		FScopeLock ScopeLock(&BulkDataMutex);
 		ETextureCreateFlags TexCreateFlags = TexCreate_Dynamic; // Flags for .SetFlags()
 		{
+
+		
 			ColorBulkData.ResizeArray(Width * Height);
 			const FString DebugName = "RecreateUDView ColorTexture";
 			
-			// RHICreateTexture2D - DEPRECATED in 5.1, use RHICreateTexture(FRHITextureCreateDesc) instead
+			//RHICreateTexture2D - DEPRECATED in 5.1, use RHICreateTexture(FRHITextureCreateDesc) instead
 			// ColorTexture = RHICreateTexture2D(Width, Height, EPixelFormat::PF_B8G8R8A8, 1, 1, TexCreateFlags, CreateInfo); // 4.27 Line
+
+			// FRHIResourceCreateInfo CreateInfo;
+			//FRHIResourceCreateInfo
 
 			// New 5.1 texture descriptor
 			FRHITextureCreateDesc ColorTextureDescriptor = FRHITextureCreateDesc::Create2D(*DebugName, Width, Height, EPixelFormat::PF_B8G8R8A8);
+
 			&ColorTextureDescriptor.SetFlags(TexCreateFlags);
 			&ColorTextureDescriptor.SetNumMips(1);
 			&ColorTextureDescriptor.SetNumSamples(1);
+
 			ColorTexture = RHICreateTexture(ColorTextureDescriptor);
 		}
 
 		{
+			// Size the array to match the possible screen size
+			// Screen size changes in editor all the time so this is required
 			DepthBulkData.ResizeArray(Width * Height);
-			// DepthTexture = RHICreateTexture2D(Width, Height, EPixelFormat::PF_R32_FLOAT, 1, 1, TexCreateFlags, CreateInfo); 4.27 line
-
+			
 			const FString DebugName = "RecreateUDView DepthTexture"; // 5.1 API might require a name to be passed in
+
+			
 
 			// New 5.1 descriptor
 			FRHITextureCreateDesc DepthTextureDescr = FRHITextureCreateDesc::Create2D(*DebugName, Width, Height, EPixelFormat::PF_R32_FLOAT);
+			
 			&DepthTextureDescr.SetNumMips(1);
 			&DepthTextureDescr.SetNumSamples(1);
 			&DepthTextureDescr.SetFlags(TexCreateFlags);
+			
 			DepthTexture = RHICreateTexture(DepthTextureDescr);
 		}
 	}
+
+	
 
 	if (pRenderView)
 	{
@@ -944,8 +990,9 @@ int CUdSDKComposite::RecreateUDView(int InWidth, int InHeight, float InFOV)
 		pRenderView = nullptr;
 	}
 
-
+	
 	error = udRenderTarget_Create(pContext, &pRenderView, pRenderer, Width, Height);
+	
 	if (error != udE_Success)
 	{
 		UDSDK_ERROR_MSG("udRenderTarget_Create error : %s", GetError(error));
