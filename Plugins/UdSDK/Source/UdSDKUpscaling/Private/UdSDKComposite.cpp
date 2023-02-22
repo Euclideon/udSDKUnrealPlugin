@@ -9,7 +9,7 @@
 #include "Utils/CThreadPool.h"
 #include "udContext.h"
 
-#include "UdSDK/Public/UdSDKSubsystem.h"
+// #include "UdSDK/Public/UdSDKSubsystem.h"
 
 uint32 CUdSDKComposite::SelectColor = 0xff0071c1;
 
@@ -749,7 +749,7 @@ int CUdSDKComposite::CaptureUDSImage(const FSceneView& View)
 {
 	// TODO - If Correct width/height can be marshaled into this function, we may not require the EngineSubsystem below
 	// possible refactor here later ...
-	UUdSDKSubsystem* udSingletonSubSystem = GEngine->GetEngineSubsystem<UUdSDKSubsystem>();
+	// UUdSDKSubsystem* udSingletonSubSystem = GEngine->GetEngineSubsystem<UUdSDKSubsystem>();
 
 	// prep an empty error
 	enum udError error = udE_Failure;
@@ -772,12 +772,12 @@ int CUdSDKComposite::CaptureUDSImage(const FSceneView& View)
 	// auto vartest = View.UnconstrainedViewRect.Width();
 	int32 nWidth = View.UnconstrainedViewRect.Width();
 	int32 nHeight = View.UnconstrainedViewRect.Height();
-
 	
 	UE_LOG(LogTemp, Display, TEXT("%s: Unscaled Width: %d, Unscaled Height: %d"), TEXT(__FUNCTION__), View.UnscaledViewRect.Width(), View.UnscaledViewRect.Height());
 	
 	// Subsystem is valid, we can get better values here
 	// We need to ensure the values are reasonable beacuse they can begin with junk values
+	/*
 	if (udSingletonSubSystem != nullptr) // Better way to check this?
 	{
 		UE_LOG(LogTemp, Display, TEXT("%s: Subsystem Width: %d, Height: %d."), TEXT(__FUNCTION__), udSingletonSubSystem->Width(), udSingletonSubSystem->Height());
@@ -794,6 +794,7 @@ int CUdSDKComposite::CaptureUDSImage(const FSceneView& View)
 			///nHeight = udSingletonSubSystem->Height();
 		}
 	}
+	*/
 
 	// Return early if we have really invalid values?
 	if (nWidth <= 0 || nHeight <= 0)
