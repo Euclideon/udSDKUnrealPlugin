@@ -30,8 +30,8 @@ void MainPS(noperspective float4 UVAndScreenPos : TEXCOORD0, float4 SvPosition :
 	float2 BufferUV2 = BufferUV;
 
 	// Scale buffer UV2 to match the editor
-	//BufferUV2.x /= ColorDepthRatioX;
-	//BufferUV2.y /= ColorDepthRatioY; <- Working paul lines
+	BufferUV2.x /= ColorDepthRatioX;
+	BufferUV2.y /= ColorDepthRatioY; // <- Working paul lines
 	
 	// In the editor the buffer UV value isn't actually correctly sized
 	float fDepth = DepthTexture[BufferUV2].x; // ORIGINAL bug causing line
