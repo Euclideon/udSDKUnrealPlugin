@@ -656,8 +656,7 @@ int CUdSDKComposite::SetTransform(uint32 InUniqueID, const FTransform& InTransfo
 					t.SetScale3D(InTransform.GetScale3D() * Asset->scale_xyz);
 					t.SetRotation(InTransform.GetRotation());
 					FuncMat2Array(inst.matrix, t.ToMatrixWithScale());
-
-
+					
 					//UDSDK_SCREENDE_DEBUG_MSG("SetTransform::Location : %d : %s", InUniqueID, *InTransform.GetLocation().ToString());
 					//inst.matrix[12] = InTransform.GetLocation().X;
 					//inst.matrix[13] = InTransform.GetLocation().Y;
@@ -683,8 +682,7 @@ int CUdSDKComposite::SetTransform(uint32 InUniqueID, const FTransform& InTransfo
 					//		udDouble4x4::translation(-pivot);
 					//	memcpy(inst.matrix, storedMatrix.a, sizeof(double) * 16);
 					//}
-
-
+					
 					break;
 				}
 			}
@@ -766,6 +764,8 @@ int CUdSDKComposite::CaptureUDSImage(const FSceneView& View)
 			return error;
 		}
 	}
+
+	
 	
 	// These values are incorrect, but are at least visually plausable.
 	// If we can however get our singleton correctly, we should use the more accurate values contained within that
