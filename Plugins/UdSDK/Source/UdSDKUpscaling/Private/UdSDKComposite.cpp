@@ -636,6 +636,11 @@ int CUdSDKComposite::AsyncSetTransform(uint32 InUniqueID, const FTransform& InTr
 //PRAGMA_DISABLE_OPTIMIZATION
 int CUdSDKComposite::SetTransform(uint32 InUniqueID, const FTransform& InTransform)
 {
+	// TODO
+	// BUG - Potentially throws here if you change scenes at all? OR While streaming UDS?
+	
+	UE_LOG(LogTemp, Display, TEXT("Setting transform ..."));
+	
 	FScopeLock ScopeLock(&DataMutex);
 	enum udError error = udE_Success;
 	void* pPointCloud = nullptr;
