@@ -773,7 +773,7 @@ int CUdSDKComposite::CaptureUDSImage(const FSceneView& View)
 	int32 nWidth = View.UnconstrainedViewRect.Width();
 	int32 nHeight = View.UnconstrainedViewRect.Height();
 	
-	UE_LOG(LogTemp, Display, TEXT("%s: Unscaled Width: %d, Unscaled Height: %d"), TEXT(__FUNCTION__), View.UnscaledViewRect.Width(), View.UnscaledViewRect.Height());
+	// UE_LOG(LogTemp, Display, TEXT("%s: Unscaled Width: %d, Unscaled Height: %d"), TEXT(__FUNCTION__), View.UnscaledViewRect.Width(), View.UnscaledViewRect.Height());
 	
 	// Subsystem is valid, we can get better values here
 	// We need to ensure the values are reasonable beacuse they can begin with junk values

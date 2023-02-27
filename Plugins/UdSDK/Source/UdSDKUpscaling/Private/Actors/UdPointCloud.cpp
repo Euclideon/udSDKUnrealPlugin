@@ -220,24 +220,51 @@ void AUdPointCloud::LoadPointCloud()
 		return;
 	if (Url.IsEmpty())
 		return;
+	
 	const FTransform& Transform = RootComponent->GetRelativeTransform();
 
 	pAsset = MakeShared<FUdAsset>(FUdAsset());
 	pAsset->url = GetUrl();
 	pAsset->coords = Transform.GetLocation();
 	pAsset->geometry = true;
+	
+	
 	CUdSDKComposite::Get()->AsyncLoad(GetUniqueID(), pAsset, [this]
 	{
 		// TODO
 		// BUG #1 Causes an editor exception error when switching scenes partway through a load in the editor
 		// BUG #2 Causes an exception if the user rapidly switches menus before Ud has had time to load
-		// Repro steps: Click login, then switch to a new scene, then switch back
-		const FTransform& Transform = RootComponent->GetRelativeTransform();
-		CUdSDKComposite::Get()->AsyncSetTransform(GetUniqueID(), Transform);
-#if WITH_EDITOR
-		// TODO - BUG - throws an error if an object is selected while switching maps
-		CUdSDKComposite::Get()->AsyncSetSelected(GetUniqueID(), IsSelectedInEditor());
-#endif //WITH_EDITOR
+		// Repro steps: Click login, then switch to a new scene, then switch back OR click login then switch to new scene
+
+		if (IsValid(this))
+		{
+			//check(false);
+			UE_LOG(LogTemp, Warning, TEXT("This UDPointCloud is valid"));
+		}
+
+		else
+		{
+			//check(false);
+			UE_LOG(LogTemp, Warning, TEXT("This UDPointCloud is	 NOT valid"));
+		}
+
+		// Valid check exception
+		if (IsValid(RootComponent))
+		{
+			const FTransform& Transform = RootComponent->GetRelativeTransform();
+			
+			CUdSDKComposite::Get()->AsyncSetTransform(GetUniqueID(), Transform);
+			#if WITH_EDITOR
+			// TODO - BUG - throws an error if an object is selected while switching maps
+			CUdSDKComposite::Get()->AsyncSetSelected(GetUniqueID(), IsSelectedInEditor());
+			#endif //WITH_EDITOR
+		}
+
+		else
+		{
+			// check(false);
+			UE_LOG(LogTemp, Warning, TEXT("%s: RootComponent invalid, any hanging pointers here?"), TEXT(__FUNCTION__));
+		}
 	});
 }
 
