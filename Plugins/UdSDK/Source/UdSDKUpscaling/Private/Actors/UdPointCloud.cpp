@@ -228,9 +228,13 @@ void AUdPointCloud::LoadPointCloud()
 	pAsset->geometry = true;
 	CUdSDKComposite::Get()->AsyncLoad(GetUniqueID(), pAsset, [this]
 	{
+		// BUG
+		// TODO
+		// Causes an editor exception error when switching scenes partway through a load in the editor
 		const FTransform& Transform = RootComponent->GetRelativeTransform();
 		CUdSDKComposite::Get()->AsyncSetTransform(GetUniqueID(), Transform);
 #if WITH_EDITOR
+		// TODO - BUG - throws an error if an object is selected while switching maps
 		CUdSDKComposite::Get()->AsyncSetSelected(GetUniqueID(), IsSelectedInEditor());
 #endif //WITH_EDITOR
 	});
