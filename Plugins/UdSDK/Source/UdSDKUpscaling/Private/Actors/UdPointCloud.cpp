@@ -7,7 +7,6 @@
 #include "..\..\Public\Actors\UdPointCloud.h"
 
 
-
 AUdPointCloud::AUdPointCloud()
 {
 	//UDSDK_INFO_MSG("AUdPointCloud::AUdPointCloud : %d", GetUniqueID());
@@ -30,16 +29,25 @@ AUdPointCloud::~AUdPointCloud()
 
 void AUdPointCloud::UpdatePointCloudTransform(const FTransform& InTransform)
 {
+	UE_LOG(LogTemp, Warning, TEXT("%s calling!"), TEXT(__FUNCTION__));
+
 	if (bWasDuplicatedForPIE)
+	{
 		return;
+	}
+
 	if (!CUdSDKComposite::Get()->IsLogin())
+	{
 		return;
-	
+	}
+
 	CUdSDKComposite::Get()->AsyncSetTransform(GetUniqueID(), InTransform);
 }
 
 void AUdPointCloud::SetUrl(FString InUrl)
 {
+	UE_LOG(LogTemp, Warning, TEXT("%s calling!"), TEXT(__FUNCTION__));
+
 	if (InUrl != this->Url)
 	{
 		Url = InUrl;
@@ -49,6 +57,7 @@ void AUdPointCloud::SetUrl(FString InUrl)
 
 void AUdPointCloud::RefreshPointCloud()
 {
+	UE_LOG(LogTemp, Warning, TEXT("%s calling!"), TEXT(__FUNCTION__));
 	//UDSDK_INFO_MSG("AUdPointCloud::RefreshPointCloud : %d", GetUniqueID());
 	ReloadPointCloud();
 }
@@ -104,7 +113,6 @@ void AUdPointCloud::Tick(float DeltaTime)
 	//{
 	//	LoadPointCloud();
 	//}
-
 }
 
 void AUdPointCloud::BeginDestroy()
@@ -116,7 +124,7 @@ void AUdPointCloud::BeginDestroy()
 		CUdSDKComposite::Get()->LoginDelegate.Remove(LoginDelegateHandle);
 		CUdSDKComposite::Get()->ExitFrontDelegate.Remove(ExitDelegateHandle);
 	}
-	
+
 	AActor::BeginDestroy();
 }
 
@@ -160,7 +168,8 @@ void AUdPointCloud::Serialize(FArchive& Ar)
 void AUdPointCloud::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (!PropertyChangedEvent.Property) {
+	if (!PropertyChangedEvent.Property)
+	{
 		return;
 	}
 
@@ -168,7 +177,7 @@ void AUdPointCloud::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 	FString PropNameAsString = PropertyChangedEvent.Property->GetName();
 	if (
 		PropName == GET_MEMBER_NAME_CHECKED(AUdPointCloud, Url)
-		)
+	)
 	{
 		//UDSDK_INFO_MSG("AUdPointCloud::PostEditChangeProperty Url : %d", GetUniqueID());
 		ReloadPointCloud();
@@ -186,7 +195,6 @@ void AUdPointCloud::PostEditImport()
 }
 
 #endif //WITH_EDITOR
-
 
 
 void AUdPointCloud::PreDuplicate(FObjectDuplicationParameters& DupParams)
@@ -218,7 +226,8 @@ void AUdPointCloud::LoadPointCloud()
 	pAsset->url = GetUrl();
 	pAsset->coords = Transform.GetLocation();
 	pAsset->geometry = true;
-	CUdSDKComposite::Get()->AsyncLoad(GetUniqueID(), pAsset, [this]{
+	CUdSDKComposite::Get()->AsyncLoad(GetUniqueID(), pAsset, [this]
+	{
 		const FTransform& Transform = RootComponent->GetRelativeTransform();
 		CUdSDKComposite::Get()->AsyncSetTransform(GetUniqueID(), Transform);
 #if WITH_EDITOR
@@ -229,13 +238,22 @@ void AUdPointCloud::LoadPointCloud()
 
 void AUdPointCloud::ReloadPointCloud()
 {
+	UE_LOG(LogTemp, Warning, TEXT("%s calling..."), TEXT(__FUNCTION__));
+
 	if (bWasDuplicatedForPIE)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Is duplicated for PIE!"));
 		return;
+	}
+
 	if (!CUdSDKComposite::Get()->IsLogin())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Not duplicated for PIE"));
 		return;
+	}
 
-
-	CUdSDKComposite::Get()->AsyncRemove(GetUniqueID(), [this] {
+	CUdSDKComposite::Get()->AsyncRemove(GetUniqueID(), [this]
+	{
 		if (Url.IsEmpty())
 			return;
 		const FTransform& Transform = RootComponent->GetRelativeTransform();
@@ -244,7 +262,8 @@ void AUdPointCloud::ReloadPointCloud()
 		pAsset->url = GetUrl();
 		pAsset->coords = Transform.GetLocation();
 		pAsset->geometry = true;
-		CUdSDKComposite::Get()->AsyncLoad(GetUniqueID(), pAsset, [this] {
+		CUdSDKComposite::Get()->AsyncLoad(GetUniqueID(), pAsset, [this]
+		{
 			const FTransform& Transform = RootComponent->GetRelativeTransform();
 			CUdSDKComposite::Get()->AsyncSetTransform(GetUniqueID(), Transform);
 #if WITH_EDITOR
@@ -256,16 +275,21 @@ void AUdPointCloud::ReloadPointCloud()
 
 void AUdPointCloud::DestroyPointCloud()
 {
+	// Whyh do we return early for PIE duplicates?
 	if (bWasDuplicatedForPIE)
+	{
 		return;
-	if (!pAsset.Get())
-		return;
+	}
 
-	CUdSDKComposite::Get()->AsyncRemove(GetUniqueID(), [this] {
+	if (!pAsset.Get())
+	{
+		return;
+	}
+
+	CUdSDKComposite::Get()->AsyncRemove(GetUniqueID(), [this]
+	{
 		pAsset = nullptr;
 	});
-
-	
 }
 
 void AUdPointCloud::SelectPointCloud(bool InSelect)

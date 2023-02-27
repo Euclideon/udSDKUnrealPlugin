@@ -5,22 +5,23 @@
 #include "UdPointCloudRoot.generated.h"
 
 UCLASS()
-class UUdPointCloudRoot : public USceneComponent {
-  GENERATED_BODY()
+class UUdPointCloudRoot : public USceneComponent
+{
+	GENERATED_BODY()
 
 public:
-  UUdPointCloudRoot();
+	UUdPointCloudRoot();
 
-  virtual void
-  ApplyWorldOffset(const FVector& InOffset, bool bWorldShift) override;
+	virtual void
+	ApplyWorldOffset(const FVector& InOffset, bool bWorldShift) override;
 
 protected:
-  virtual void BeginPlay() override;
-  virtual bool MoveComponentImpl(
-      const FVector& Delta,
-      const FQuat& NewRotation,
-      bool bSweep,
-      FHitResult* OutHit = NULL,
-      EMoveComponentFlags MoveFlags = MOVECOMP_NoFlags,
-      ETeleportType Teleport = ETeleportType::None) override;
+	virtual void BeginPlay() override;
+	virtual bool MoveComponentImpl(
+		const FVector& Delta,
+		const FQuat& NewRotation,
+		bool bSweep,
+		FHitResult* OutHit = NULL,
+		EMoveComponentFlags MoveFlags = MOVECOMP_NoFlags,
+		ETeleportType Teleport = ETeleportType::None) override;
 };
