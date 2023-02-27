@@ -231,6 +231,7 @@ void AUdPointCloud::LoadPointCloud()
 		// TODO
 		// BUG #1 Causes an editor exception error when switching scenes partway through a load in the editor
 		// BUG #2 Causes an exception if the user rapidly switches menus before Ud has had time to load
+		// Repro steps: Click login, then switch to a new scene, then switch back
 		const FTransform& Transform = RootComponent->GetRelativeTransform();
 		CUdSDKComposite::Get()->AsyncSetTransform(GetUniqueID(), Transform);
 #if WITH_EDITOR
