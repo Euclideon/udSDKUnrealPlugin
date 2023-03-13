@@ -808,13 +808,15 @@ int CUdSDKComposite::CaptureUDSImage(const FSceneView& View)
 		return error;
 	}
 
-	// Hardcap the render to some reasonable number
-	// TODO - Probably want to handle this better
-	if (nWidth >= 2048 || nHeight >= 2048)
+	// TODO - This needs to be handled better.
+	// Hardcap the render to some reasonable number - sometimes the width/height can come out at unreasonably large numbers which signifies that this frame shouldnt render
+	if (nWidth >= 8192 || nHeight >= 8192)
 	{
+		check(false);
 		UDSDK_ERROR_MSG("Error, width or height too big : %s", GetError(error));
 		return error;
 	}
+
 	
 	error = (udError)RecreateUDView(nWidth, nHeight, View.FOV);
 	
