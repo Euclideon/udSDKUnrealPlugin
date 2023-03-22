@@ -28,7 +28,6 @@ struct FUdAsset
 
 	FString folder = "";
 	FString url = "";
-	FVector pivot = FVector::ZeroVector;
 	void* pPointCloud = nullptr;
 };
 

@@ -24,9 +24,15 @@ FUdSDKCompositeViewExtension::FUdSDKCompositeViewExtension(const FAutoRegister& 
 
 void FUdSDKCompositeViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
+	UUDSubsystem* MySubsystem = GEngine->GetEngineSubsystem<UUDSubsystem>();
 
+	if (MySubsystem)
+	{
+		UE_LOG(LogTemp, Display, TEXT("Setting up view: %f,%f,%f"), InView.ViewLocation.X, InView.ViewLocation.Y, InView.ViewLocation.Z);
+		MySubsystem->ResetForNextViewport(InView);
+	}
 }
-//PRAGMA_DISABLE_OPTIMIZATION
+
 void FUdSDKCompositeViewExtension::BeginRenderViewFamily(FSceneViewFamily& InViewFamily)
 {
 	// TODO - It would be ideal if this function could correctly marshal the true depth buffer width/height down into the CaptureUDSImage call below
@@ -42,15 +48,12 @@ void FUdSDKCompositeViewExtension::BeginRenderViewFamily(FSceneViewFamily& InVie
 
 	if (InViewFamily.GetFeatureLevel() >= ERHIFeatureLevel::SM5 && CVarEnableUds.GetValueOnAnyThread() > 0)
 	{
-
 		TArray<TSharedPtr<FUdsData>> ViewData;
 
-		//for (int i = 0; i < InViewFamily.Views.Num(); i++)
+		for (int i = 0; i < InViewFamily.Views.Num(); i++)
 		{
-			//const FSceneView* InView = InViewFamily.Views[i];
+			const FSceneView* InView = InViewFamily.Views[i];
 
-
-			const FSceneView* InView = InViewFamily.Views[0];
 			if (ensure(InView))
 			{
 				uint32 ViewIndex0 = 0;
@@ -61,8 +64,7 @@ void FUdSDKCompositeViewExtension::BeginRenderViewFamily(FSceneViewFamily& InVie
 				EditorViewBitflag0 = InView->SceneViewInitOptions.EditorViewBitflag;
 				EditorViewBitflag1 = InView->SceneViewInitOptions.EditorViewBitflag;
 #endif
-				if (EditorViewBitflag0 == (uint64)1 << ViewIndex0 ||
-					EditorViewBitflag1 == (uint64)1 << ViewIndex1)
+				if (EditorViewBitflag0 == (uint64)1 << ViewIndex0 || EditorViewBitflag1 == (uint64)1 << ViewIndex1)
 				{
 					FUdsData* Data = new FUdsData();
 					MySubsystem->CaptureUDSImage(*InView);
@@ -74,14 +76,8 @@ void FUdSDKCompositeViewExtension::BeginRenderViewFamily(FSceneViewFamily& InVie
 					if (MySubsystem->IsValid())
 						InViewFamily.SetSecondarySpatialUpscalerInterface(new FUdSDKCompositeUpscaler(EUdsMode::PostProcessingOnly, ViewData));
 				}
-				
 			}
-	
 		}
-
-		
-		
-		
 	}
 }
 //PRAGMA_ENABLE_OPTIMIZATION

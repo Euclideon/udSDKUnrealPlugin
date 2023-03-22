@@ -5,7 +5,7 @@
 #include "UDSubsystem.h"
 
 /** Represents a UArrowComponent to the scene manager. */
-class FPointcloudSceneProxy final : public FPrimitiveSceneProxy
+class FPointCloudSceneProxy final : public FPrimitiveSceneProxy
 {
 public:
 	SIZE_T GetTypeHash() const override
@@ -14,14 +14,13 @@ public:
 		return reinterpret_cast<size_t>(&UniquePointer);
 	}
 
-	FPointcloudSceneProxy(UUdPointCloudRoot* Component)
-		: FPrimitiveSceneProxy(Component)
-		, myRoot(Component)
+	FPointCloudSceneProxy(UUdPointCloudRoot* Component) : FPrimitiveSceneProxy(Component)
 	{
+		myRoot = Component;
 		bWillEverBeLit = false;
 	}
 
-	virtual ~FPointcloudSceneProxy()
+	virtual ~FPointCloudSceneProxy()
 	{
 		//TODO: Cleanup here
 	}
@@ -34,16 +33,16 @@ public:
 
 		FMatrix EffectiveLocalToWorld = GetLocalToWorld();
 
+		UUDSubsystem* MySubsystem = GEngine->GetEngineSubsystem<UUDSubsystem>();
+
 		for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
 		{
 			if (VisibilityMap & (1 << ViewIndex))
 			{
 				const FSceneView* View = Views[ViewIndex];
 
-				// Calculate the view-dependent scaling factor.
-				float ViewScale = 1.0f;
-
-				//TODO: Figure out what we need to do here
+				if (MySubsystem)
+					MySubsystem->QueueInstance(myRoot->PointCloudHandle, GetLocalToWorld(), View);
 			}
 		}
 	}
@@ -58,11 +57,6 @@ public:
 		Result.bEditorPrimitiveRelevance = UseEditorCompositing(View);
 		Result.bVelocityRelevance = DrawsVelocity() && Result.bOpaque && Result.bRenderInMainPass;
 		return Result;
-	}
-
-	virtual void OnTransformChanged() override
-	{
-		myRoot->UpdatePointCloudTransform(GetLocalToWorld());
 	}
 
 	virtual uint32 GetMemoryFootprint(void) const override { return(sizeof(*this) + GetAllocatedSize()); }
@@ -81,16 +75,6 @@ UUdPointCloudRoot::UUdPointCloudRoot()
 UUdPointCloudRoot::~UUdPointCloudRoot()
 {
 	DestroyPointCloud();
-}
-
-void UUdPointCloudRoot::UpdatePointCloudTransform(const FMatrix& InMatrix)
-{
-	UE_LOG(LogTemp, Warning, TEXT("%s calling!"), TEXT(__FUNCTION__));
-
-	UUDSubsystem* MySubsystem = GEngine->GetEngineSubsystem<UUDSubsystem>();
-
-	if (MySubsystem)
-		MySubsystem->SetTransform(GetUniqueID(), InMatrix);
 }
 
 void UUdPointCloudRoot::SetUrl(FString InUrl)
@@ -113,7 +97,7 @@ void UUdPointCloudRoot::RefreshPointCloud()
 
 void UUdPointCloudRoot::LoadPointCloud()
 {
-	if (pAsset.Get())
+	if (PointCloudHandle)
 		return;
 
 	UUDSubsystem* MySubsystem = GEngine->GetEngineSubsystem<UUDSubsystem>();
@@ -124,13 +108,7 @@ void UUdPointCloudRoot::LoadPointCloud()
 	if (Url.IsEmpty())
 		return;
 
-	const FTransform& Transform = GetRelativeTransform();
-
-	pAsset = MakeShared<FUdAsset>(FUdAsset());
-	pAsset->url = GetUrl();
-
-	MySubsystem->Load(GetUniqueID(), pAsset);
-	MySubsystem->SetTransform(GetUniqueID(), GetComponentToWorld().ToMatrixWithScale());
+	PointCloudHandle = MySubsystem->Load(GetUrl());
 }
 
 void UUdPointCloudRoot::ReloadPointCloud()
@@ -145,31 +123,24 @@ void UUdPointCloudRoot::ReloadPointCloud()
 		return;
 	}
 
-	MySubsystem->Remove(GetUniqueID());
+	MySubsystem->Remove(&PointCloudHandle);
 
 	if (Url.IsEmpty())
 		return;
 
-	const FTransform& Transform = GetRelativeTransform();
-	pAsset = nullptr;
-	pAsset = MakeShared<FUdAsset>(FUdAsset());
-	pAsset->url = GetUrl();
-
-	MySubsystem->Load(GetUniqueID(), pAsset);
-	MySubsystem->SetTransform(GetUniqueID(), GetComponentToWorld().ToMatrixWithScale());
+	PointCloudHandle = MySubsystem->Load(GetUrl());
 }
 
 void UUdPointCloudRoot::DestroyPointCloud()
 {
-	if (!pAsset.Get())
+	if (!PointCloudHandle)
 	{
 		return;
 	}
 
 	UUDSubsystem* MySubsystem = GEngine->GetEngineSubsystem<UUDSubsystem>();
 
-	MySubsystem->Remove(GetUniqueID());
-	pAsset = nullptr;
+	MySubsystem->Remove(&PointCloudHandle);
 }
 
 void UUdPointCloudRoot::LoginPointCloud()
@@ -206,7 +177,7 @@ void UUdPointCloudRoot::PostLoad()
 
 FPrimitiveSceneProxy* UUdPointCloudRoot::CreateSceneProxy()
 {
-	return new FPointcloudSceneProxy(this);
+	return new FPointCloudSceneProxy(this);
 }
 
 

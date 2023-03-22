@@ -9,11 +9,11 @@ class UUdPointCloudRoot : public UPrimitiveComponent
 {
 	GENERATED_BODY()
 
+	friend class FPointCloudSceneProxy;
+
 public:
 	UUdPointCloudRoot();
 	~UUdPointCloudRoot();
-
-	void UpdatePointCloudTransform(const FMatrix& InMatrix);
 
 	UFUNCTION(BlueprintGetter, Category = "UnlimitedDetail")
 	FString GetUrl() const { return Url; }
@@ -33,7 +33,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintGetter = GetUrl, BlueprintSetter = SetUrl, Category = "UnlimitedDetail")
 	FString Url;
 
-	TSharedPtr<struct FUdAsset> pAsset;
+	struct FUDPointCloudHandle* PointCloudHandle;
 
 	FDelegateHandle LoginDelegateHandle;
 	FDelegateHandle ExitDelegateHandle;

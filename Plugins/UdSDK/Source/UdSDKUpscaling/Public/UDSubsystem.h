@@ -1,6 +1,5 @@
 #pragma once
 #include "CoreMinimal.h"
-#include <chrono>
 #include "udContext.h"
 #include "udRenderContext.h"
 #include "udPointCloud.h"
@@ -18,6 +17,26 @@ DECLARE_MULTICAST_DELEGATE(FUdExitDelegate);
 
 class FUdSDKCompositeViewExtension;
 
+typedef uint32_t udVoxelShader(struct udPointCloud* pPointCloud, const struct udVoxelID* pVoxelID, const void* pVoxelUserData);
+
+USTRUCT(BlueprintType)
+struct FUDPointCloudHandle
+{
+	GENERATED_BODY()
+
+public:
+	FString URL;
+
+	bool bIsLoaded;
+
+	udPointCloud* PointCloud;
+	udVoxelShader* VoxelShaderFunc;
+
+	FVector Pivot;
+
+	int RefCount;
+};
+
 UCLASS()
 class UDSDKUPSCALING_API UUDSubsystem : public UEngineSubsystem
 {
@@ -33,10 +52,9 @@ public:
 	int LoginFunction();
 	int Exit();
 
-	int Load(uint32 InUniqueID, TSharedPtr<FUdAsset> OutAssert);
-	int Remove(uint32 InUniqueID);
-	bool Find(uint32 InUniqueID);
-	int SetTransform(uint32 InUniqueID, const FMatrix& InMatrix);
+	FUDPointCloudHandle* Load(FString URL);
+	void Remove(FUDPointCloudHandle** PCI); // Sets *PCI to nullptr
+	bool Find(FString URL);
 
 	UFUNCTION(BlueprintCallable)
 	bool IsLogin() const { return LoginFlag; };
@@ -46,6 +64,9 @@ public:
 
 	bool IsValid() const { return IsLogin() && GetColorTexture().IsValid() && GetDepthTexture().IsValid() && InstanceArray.Num() > 0; };
 
+	bool QueueInstance(FUDPointCloudHandle* PCI, const FMatrix& InMatrix, const FSceneView* View);
+
+	void ResetForNextViewport(const FSceneView& View);
 	int CaptureUDSImage(const FSceneView& View);
 
 protected:
@@ -84,10 +105,10 @@ private:
 
 	TArray<udRenderInstance> InstanceArray;
 	
-	TMap<uint32, TSharedPtr<FUdAsset>> AssetsMap;
+	TMap<FString, FUDPointCloudHandle> AssetsMap;
 
 	FCriticalSection BulkDataMutex;
-	FUdSDKResourceBulkData<FColor>ColorBulkData;
+	FUdSDKResourceBulkData<FColor> ColorBulkData;
 	FUdSDKResourceBulkData<float> DepthBulkData;
 
 	FMatrix ProjectionMatrix;
