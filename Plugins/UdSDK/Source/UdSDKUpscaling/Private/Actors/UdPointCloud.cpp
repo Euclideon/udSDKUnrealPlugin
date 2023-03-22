@@ -14,12 +14,15 @@ AUdPointCloud::AUdPointCloud()
 	bWasDuplicatedForPIE = false;
 	bWasHiddenEd = false;
 	bWasSelectedInEditor = false;
+
 #if WITH_EDITOR
-	bWasHiddenEd = IsHiddenEd();
+	bWasHiddenEd = IsHiddenEd();	
 	bWasSelectedInEditor = IsSelectedInEditor();
 #endif //WITH_EDITOR
+
 	RootComponent = CreateDefaultSubobject<UUdPointCloudRoot>(TEXT("PointCloud"));
 	RootComponent->SetMobility(EComponentMobility::Static);
+
 }
 
 AUdPointCloud::~AUdPointCloud()
@@ -236,7 +239,7 @@ void AUdPointCloud::LoadPointCloud()
 		// BUG #2 Causes an exception if the user rapidly switches menus before Ud has had time to load
 		// Repro steps: Click login, then switch to a new scene, then switch back OR click login then switch to new scene
 
-		if (IsValid(this))
+		if (IsValid(this)) // At this point, I'm not even sure checking Isvalid(this) is safe beacuse this actior could be entirely unloaded by the time this function calls
 		{
 			//check(false);
 			UE_LOG(LogTemp, Warning, TEXT("This UDPointCloud is valid"));
@@ -249,7 +252,7 @@ void AUdPointCloud::LoadPointCloud()
 		}
 
 		// Valid check exception
-		if (IsValid(RootComponent))
+		if (IsValid(RootComponent)) // At this point, root component may actually be entirely invalid, and checking like this may fail catestrophically
 		{
 			const FTransform& Transform = RootComponent->GetRelativeTransform();
 			

@@ -3,7 +3,6 @@
 #include "Engine/World.h"
 #include "UdSDKMacro.h"
 
-
 UUdPointCloudRoot::UUdPointCloudRoot()
 {
 	//PrimaryComponentTick.bCanEverTick = false;
@@ -11,9 +10,7 @@ UUdPointCloudRoot::UUdPointCloudRoot()
 	// UDSDK_INFO_MSG("UUdPointCloudRoot::UUdPointCloudRoot : %d", GetUniqueID());
 }
 
-void UUdPointCloudRoot::ApplyWorldOffset(
-	const FVector& InOffset,
-	bool bWorldShift)
+void UUdPointCloudRoot::ApplyWorldOffset(const FVector& InOffset, bool bWorldShift)
 {
 	USceneComponent::ApplyWorldOffset(InOffset, bWorldShift);
 
@@ -22,22 +19,19 @@ void UUdPointCloudRoot::ApplyWorldOffset(
 	//UDSDK_INFO_MSG("UUdPointCloudRoot::ApplyWorldOffset : %d,%s,%s", GetUniqueID(), *InOffset.ToString(), *oldOrigin.ToString());
 }
 
-
 void UUdPointCloudRoot::BeginPlay()
 {
 	Super::BeginPlay();
 	//UDSDK_INFO_MSG("UUdPointCloudRoot::BeginPlay : %d", GetUniqueID());
 }
 
-bool UUdPointCloudRoot::MoveComponentImpl(
-	const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit, EMoveComponentFlags MoveFlags,
-	ETeleportType Teleport)
+bool UUdPointCloudRoot::MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit, EMoveComponentFlags MoveFlags, ETeleportType Teleport)
 {
 	bool result = USceneComponent::MoveComponentImpl(Delta, NewRotation, bSweep, OutHit, MoveFlags, Teleport);
 
 	if (IsUsingAbsoluteLocation())
 	{
-		// UE_LOG(LogTemp, Warning, TEXT("%s: Using absolute location."), TEXT(__FUNCTION__));
+		UE_LOG(LogTemp, Warning, TEXT("%s: Using absolute location."), TEXT(__FUNCTION__));
 
 		if (AUdPointCloud* pPointCloud = GetOwner<AUdPointCloud>())
 		{
