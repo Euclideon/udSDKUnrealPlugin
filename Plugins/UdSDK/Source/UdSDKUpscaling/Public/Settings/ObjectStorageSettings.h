@@ -12,23 +12,15 @@ class UDSDKUPSCALING_API UObjectStorageSettings : public UObjectStorageSettingsB
 	GENERATED_BODY()
 
 public:
-	UObjectStorageSettings();
+	UPROPERTY(config, EditAnywhere, Category = "UnlimitedDetail|LoginInformation", meta = (ToolTip = ""))
+	FName ServerPath = FName("");
 
-	UPROPERTY(config, EditAnywhere, Category = "UdSDK login information", meta = (ToolTip = ""))
-	FName ServerPath;
+	UPROPERTY(config, EditAnywhere, Category = "UnlimitedDetail|LoginInformation", meta = (ToolTip = ""))
+	FName Username = FName("");
 
-	UPROPERTY(config, EditAnywhere, Category = "UdSDK login information", meta = (ToolTip = ""))
-	FName Username;
+	UPROPERTY(config, EditAnywhere, Category = "UnlimitedDetail|LoginInformation", meta = (ToolTip = ""))
+	FName Password = FName("");
 
-	UPROPERTY(config, EditAnywhere, Category = "UdSDK login information", meta = (ToolTip = ""))
-	FName Password;
-
-	UPROPERTY(config, EditAnywhere, Category = "UdSDK login information", meta = (ToolTip = ""))
-	FColor SelectColor;
-
-
-	UPROPERTY(config, EditAnywhere, Category = "UdSDK login information", meta = (ToolTip = ""))
-	bool Offline;
-	
-	void RefreshData();
+	UPROPERTY(config, EditAnywhere, Category = "UnlimitedDetail|LoginInformation", meta = (ToolTip = ""))
+	bool Offline = false;
 };

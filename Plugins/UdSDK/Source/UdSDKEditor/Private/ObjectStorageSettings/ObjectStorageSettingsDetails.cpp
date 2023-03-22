@@ -36,10 +36,6 @@ void FObjectStorageSettingsDetails::CustomizeDetails(IDetailLayoutBuilder& Detai
 				.ToolTipText(LOCTEXT("RefreshData_Tooltip", "Update data to the scene"))
 				.OnClicked_Lambda([this, Settings]()
 				{
-					if (Settings.IsValid())
-					{
-						Settings->RefreshData();
-					}
 					return(FReply::Handled());
 				})
 			]

@@ -11,8 +11,6 @@
 
 // #include "UdSDK/Public/UdSDKSubsystem.h"
 
-uint32 CUdSDKComposite::SelectColor = 0xff0071c1;
-
 template <typename ValueType>
 void ResizeArray(TArray<ValueType>& Array, int32 Size)
 {
@@ -20,66 +18,26 @@ void ResizeArray(TArray<ValueType>& Array, int32 Size)
 	Array.AddUninitialized(Size);
 }
 
-uint32_t vcPCShaders_BuildAlpha(FUdAsset* f)
-{
-	return (f->selected ? CUdSDKComposite::GetSelectColor() : 0x00000000);
-}
-
 uint32_t vcVoxelShader_Black(udPointCloud* /*pPointCloud*/, const udVoxelID* /*pVoxelID*/, const void* pUserData)
 {
 	FUdAsset* pData = (FUdAsset*)pUserData;
 
-	return vcPCShaders_BuildAlpha(pData) | 0x00000000;
+	return 0x00000000;
 }
 
-udFloat3 g_globalSunDirection = udFloat3::create((float)0.1, (float)0.1, (float)0.1);
 uint32_t vcVoxelShader_Colour(udPointCloud* pPointCloud, const udVoxelID* pVoxelID, const void* pUserData)
 {
-	FUdAsset* pData = (FUdAsset*)pUserData;
+	uint32_t color = 0;
+	udPointCloud_GetNodeColour(pPointCloud, pVoxelID, &color);
 
-	uint64_t color64 = 0;
-	udPointCloud_GetNodeColour64(pPointCloud, pVoxelID, &color64);
-	uint32_t result;
-	//uint32_t encNormal = (uint32_t)(color64 >> 32);
-	//if (encNormal)
-	//{
-	//	udFloat3 normal;
-	//	normal.x = int16_t(encNormal >> 16) / 32767.f;
-	//	normal.y = int16_t(encNormal & 0xfffe) / 32767.f;
-	//	normal.z = 1.f - (normal.x * normal.x + normal.y * normal.y);
-	//	if (normal.z > 0.001)
-	//		normal.z = udSqrt(normal.z);
-	//	if (encNormal & 1)
-	//		normal.z = -normal.z;
-	//
-	//	float dot = (udDot(g_globalSunDirection, normal) * 0.5f) + 0.5f;
-	//	result = (uint8_t(((color64 >> 16) & 0xff) * dot) << 16)
-	//		| (uint8_t(((color64 >> 8) & 0xff) * dot) << 8)
-	//		| (uint8_t(((color64 >> 0) & 0xff) * dot) << 0);
-	//}
-	//else
-	{
-		result = (uint32_t)color64 & 0xffffff;
-	}
-
-	return vcPCShaders_BuildAlpha(pData) | (0xffffff & result);
+	return (0xffffff & color);
 }
 
-auto FuncMat2Array = [](double* array, const FMatrix& Mat)
+void FuncMat2Array(double* array, const FMatrix& Mat)
 {
-	static bool transpose = false;
-	if (transpose)
-	{
+	for (int i = 0; i < 4; ++i)
 		for (int j = 0; j < 4; ++j)
-			for (int i = 0; i < 4; ++i)
-				array[j * 4 + i] = Mat.M[i][j];
-	}
-	else
-	{
-		for (int i = 0; i < 4; ++i)
-			for (int j = 0; j < 4; ++j)
-				array[i * 4 + j] = Mat.M[i][j];
-	}
+			array[i * 4 + j] = Mat.M[i][j];
 };
 
 CUdSDKComposite::CUdSDKComposite()
@@ -95,9 +53,9 @@ CUdSDKComposite::CUdSDKComposite()
 
 CUdSDKComposite::~CUdSDKComposite()
 {
+	//TODO: Cleanup properly
 	if (IsLogin())
 		Exit();
-
 
 	LoginDelegate.Clear();
 	ExitFrontDelegate.Clear();
@@ -105,16 +63,6 @@ CUdSDKComposite::~CUdSDKComposite()
 
 	if (CThreadPool::Get())
 		delete CThreadPool::Get();
-}
-
-void CUdSDKComposite::SetSelectColor(const uint32& InValue)
-{
-	SelectColor = InValue;
-}
-
-uint32 CUdSDKComposite::GetSelectColor()
-{
-	return SelectColor;
 }
 
 // Does NOT init the udContext
@@ -128,7 +76,6 @@ int CUdSDKComposite::Init()
 		Username = Settings->Username.ToString();
 		APIKey = Settings->Password.ToString();
 		Offline = Settings->Offline;
-		SelectColor = Settings->SelectColor.DWColor();
 		if((ServerUrl.IsEmpty() || Username.IsEmpty() || APIKey.IsEmpty()) && !Offline)
 			error = udE_Failure;
 	}
@@ -338,14 +285,6 @@ int CUdSDKComposite::Load(uint32 InUniqueID, TSharedPtr<FUdAsset> OutAssert)
 
 	FString folder = OutAssert->folder;
 	FString uri = OutAssert->url;
-	FVector coords = OutAssert->coords;
-	FVector rotation = OutAssert->rotation;
-	FVector scale_xyz = OutAssert->scale_xyz;
-	FVector position = OutAssert->position;
-	bool b_scale_xyz = OutAssert->b_scale_xyz;
-	bool selected = OutAssert->selected;
-	bool geometry = OutAssert->geometry;
-	double scale = OutAssert->scale;
 
 	if (uri.IsEmpty())
 	{
@@ -365,54 +304,11 @@ int CUdSDKComposite::Load(uint32 InUniqueID, TSharedPtr<FUdAsset> OutAssert)
 		return error;
 	}
 
-	//double maxDim = 0;
-	//for (int i = 0; i < 3; i++) {
-	//	if (maxDim < header.boundingBoxExtents[i])
-	//		maxDim = header.boundingBoxExtents[i];
-	//}
-	//float s = (float)(1 / (2 * maxDim));//bounding box extents are relative to centre -> size of model is double the extents
-
-	scale = header.scaledRange;
-
-	udDouble3 ud_position;
-	udDouble3 ud_scale;
-	udDouble4x4 storedMatrix;
 	udDouble3 pivot = udDouble3::create(header.pivot[0], header.pivot[1], header.pivot[2]);
-	if (geometry)
-	{
-		ud_position = udDouble3::create(coords.X, coords.Y, coords.Z);
-		if (b_scale_xyz)
-			ud_scale = udDouble3::create(scale * scale_xyz.X, scale * scale_xyz.Y, scale * scale_xyz.Z);
-		else
-			ud_scale = udDouble3::create(scale);
-		udDouble3 euler = udDouble3::create(rotation.X, rotation.Y, rotation.Z);
-		storedMatrix = udDouble4x4::translation(pivot) *
-			udDouble4x4::rotationYPR(UD_DEG2RAD(euler), ud_position) *
-			udDouble4x4::scaleNonUniform(ud_scale) *
-			udDouble4x4::translation(-pivot);
-		memcpy(header.storedMatrix, storedMatrix.a, sizeof(double) * 16);
-	}
-	else
-	{
-		storedMatrix = udDouble4x4::create(header.storedMatrix);
-		udDoubleQuat orientation;
-		(udDouble4x4::translation(-pivot) * storedMatrix * udDouble4x4::translation(pivot)).extractTransforms(ud_position, ud_scale, orientation);
-	}
 
-	OutAssert->scale_xyz.X = ud_scale.x;
-	OutAssert->scale_xyz.Y = ud_scale.y;
-	OutAssert->scale_xyz.Z = ud_scale.z;
-	
 	OutAssert->pivot.X = header.pivot[0];
 	OutAssert->pivot.Y = header.pivot[1];
 	OutAssert->pivot.Z = header.pivot[2];
-
-	header.storedMatrix[12] = position.X;
-	header.storedMatrix[13] = position.Y;
-	header.storedMatrix[14] = position.Z;
-
-	OutAssert->selected = false;
-
 
 	udRenderInstance inst;
 	memset(&inst, 0, sizeof(udRenderInstance));
@@ -704,57 +600,7 @@ int CUdSDKComposite::SetTransform(uint32 InUniqueID, const FMatrix& InMatrix)
 	
 	return error;
 }
-//PRAGMA_ENABLE_OPTIMIZATION
 
-int CUdSDKComposite::AsyncSetSelected(uint32 InUniqueID, bool InSelect)
-{
-	enum udError error = udE_Failure;
-
-	if (!LoginFlag)
-	{
-		UDSDK_ERROR_MSG("AsyncLoad -> Not logged in!");
-		return error;
-	}
-
-	uint32 UniqueID = InUniqueID;
-	const bool& Select = InSelect;
-	CThreadPool::Get()->enqueue([UniqueID, Select, this] {
-		SetSelected(UniqueID, Select);
-	});
-
-	return udE_Success;
-}
-
-int CUdSDKComposite::SetSelected(uint32 InUniqueID, bool InSelect)
-{
-	FScopeLock ScopeLock(&DataMutex);
-	enum udError error = udE_Success; // can't fail?
-	void* pPointCloud = nullptr;
-	if (TSharedPtr<FUdAsset> Asset = AssetsMap.FindRef(InUniqueID)) // but can fail and return nullptr?
-	{
-		Asset->selected = InSelect;
-	}
-	return error;
-}
-
-int CUdSDKComposite::SetSelectedByModelIndex(uint32 InModelIndex, bool InSelect)
-{
-	FScopeLock ScopeLock(&DataMutex);
-	enum udError error = udE_Success;
-
-	if (InModelIndex < (uint32)InstanceArray.Num())
-	{
-		udRenderInstance& tmpIns = InstanceArray[InModelIndex];
-		FUdAsset* pAsset = static_cast<FUdAsset*>(tmpIns.pVoxelUserData);
-		if (pAsset)
-		{
-			pAsset->selected = InSelect;
-		}
-	}
-
-	return error;
-}
-//PRAGMA_DISABLE_OPTIMIZATION
 // The main function for rendering out UD images
 int CUdSDKComposite::CaptureUDSImage(const FSceneView& View)
 {

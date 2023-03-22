@@ -24,7 +24,6 @@ public:
 	CUdSDKComposite();
 	~CUdSDKComposite();
 
-	
 	int LoginFunction();
 	int Exit();
 
@@ -40,10 +39,6 @@ public:
 	int AsyncSetTransform(uint32 InUniqueID, const FMatrix& InMatrix);
 	int SetTransform(uint32 InUniqueID, const FMatrix& InMatrix);
 
-	int AsyncSetSelected(uint32 InUniqueID, bool InSelect);
-	int SetSelected(uint32 InUniqueID, bool InSelect);
-	int SetSelectedByModelIndex(uint32 InModelIndex, bool InSelect);
-
 	bool IsLogin() const {
 		return LoginFlag;
 	};
@@ -56,11 +51,8 @@ public:
 		return DepthTexture;
 	};
 
-	bool IsValid()const {
-		return IsLogin() &&
-			GetColorTexture().IsValid() &&
-			GetDepthTexture().IsValid() && 
-			InstanceArray.Num() > 0;
+	bool IsValid() const {
+		return IsLogin() && GetColorTexture().IsValid() && GetDepthTexture().IsValid() && InstanceArray.Num() > 0;
 	};
 
 	int CaptureUDSImage(const FSceneView& View);
@@ -68,14 +60,11 @@ public:
 	FUdLoginDelegate LoginDelegate;
 	FUdExitDelegate ExitFrontDelegate;
 	FUdExitDelegate ExitLaterDelegate;
-public:
-	static void SetSelectColor(const uint32& InValue);
-	static uint32 GetSelectColor();
+
 private:
 	int Init();
 	int RecreateUDView(int InWidth, int InHeight, float InFOV);
-	//int LoadThread(int id, int size, const TArray<TSharedPtr<FUdAsset>>& asserts);
-	
+
 private:
 	FTexture2DRHIRef ColorTexture;
 	FTexture2DRHIRef DepthTexture;
@@ -87,15 +76,14 @@ private:
 	FString Username;
 	FString APIKey;
 	bool Offline;
-	static uint32 SelectColor;
 
 	struct udContext* pContext = NULL;
 	struct udContextPartial* pContextPartial = NULL; // New 5.1 context partial for web based logins
 	struct udRenderContext* pRenderer = NULL;
 	struct udRenderTarget* pRenderView = NULL;
 
-	double ViewArray[16] = {0};
-	double ProjArray[16] = {0};
+	double ViewArray[16] = {};
+	double ProjArray[16] = {};
 
 	// TODO - Are these effectively the same as the width/height values in the other singleton?
 	int32 Width = 0;

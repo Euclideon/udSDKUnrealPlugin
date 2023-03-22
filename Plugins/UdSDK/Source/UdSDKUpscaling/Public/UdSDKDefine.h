@@ -28,16 +28,7 @@ struct FUdAsset
 
 	FString folder = "";
 	FString url = "";
-	FVector coords = FVector::ZeroVector;
-	FVector rotation = FVector::ZeroVector;
-	FVector scale_xyz = FVector::ZeroVector;
-	FVector position = FVector::ZeroVector;
 	FVector pivot = FVector::ZeroVector;
-	bool b_scale_xyz = 0;
-	bool selected = 0;
-	uint32 select_color = 0xff0071c1;
-	bool geometry = 0;
-	double scale = 0;
 	void* pPointCloud = nullptr;
 };
 
