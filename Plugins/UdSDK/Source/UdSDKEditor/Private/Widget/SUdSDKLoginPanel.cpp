@@ -163,6 +163,7 @@ void SUdSDKLoginPanel::Construct(const FArguments& InArgs)
 FReply SUdSDKLoginPanel::SignIn()
 {
     UE_LOG(LogTemp, Display, TEXT("Attemping SignIn ..."));
+    
     GetMutableDefault<UObjectStorageSettings>()->ServerPath = FName(*ServerName);
     GetMutableDefault<UObjectStorageSettings>()->Username = FName(*UserName);
     GetMutableDefault<UObjectStorageSettings>()->Password = FName(*APIKey);
