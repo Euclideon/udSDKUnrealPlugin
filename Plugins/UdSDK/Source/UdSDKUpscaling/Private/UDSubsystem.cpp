@@ -1,15 +1,12 @@
-#include "UdSDKComposite.h"
+#include "UDSubsystem.h"
 #include "Runtime/RHI/Public/RHI.h"
 #include "ImageUtils.h"
 #include "Slate/SceneViewport.h"
 #include "Engine/GameViewportClient.h"
-#include "Settings/ObjectStorageSettings.h"
+#include "ObjectStorageSettings.h"
 #include "UdSDKCompositeViewExtension.h"
 #include "UdSDKDefine.h"
-#include "Utils/CThreadPool.h"
 #include "udContext.h"
-
-// #include "UdSDK/Public/UdSDKSubsystem.h"
 
 template <typename ValueType>
 void ResizeArray(TArray<ValueType>& Array, int32 Size)
@@ -40,33 +37,35 @@ void FuncMat2Array(double* array, const FMatrix& Mat)
 			array[i * 4 + j] = Mat.M[i][j];
 };
 
-CUdSDKComposite::CUdSDKComposite()
+UUDSubsystem::UUDSubsystem()
 {
 	Width = 0;
 	Height = 0;
 	LoginFlag = false;
 	ViewExtension = nullptr;
-	int32 NumberOfCores = FPlatformMisc::NumberOfCores();
-	if (!CThreadPool::Get())
-		new CThreadPool(NumberOfCores);
 }
 
-CUdSDKComposite::~CUdSDKComposite()
+UUDSubsystem::~UUDSubsystem()
 {
 	//TODO: Cleanup properly
 	if (IsLogin())
 		Exit();
+}
 
-	LoginDelegate.Clear();
-	ExitFrontDelegate.Clear();
-	ExitLaterDelegate.Clear();
+void UUDSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	UE_LOG(LogTemp, Display, TEXT("UnlimitedDetail | INIT SUBSYSTEM"));
+	LoginFunction();
+}
 
-	if (CThreadPool::Get())
-		delete CThreadPool::Get();
+void UUDSubsystem::Deinitialize()
+{
+	UE_LOG(LogTemp, Display, TEXT("UnlimitedDetail | DEINIT SUBSYSTEM"));
+	Exit();
 }
 
 // Does NOT init the udContext
-int CUdSDKComposite::Init()
+int UUDSubsystem::Init()
 {
 	enum udError error = udE_Success;
 
@@ -91,7 +90,7 @@ int CUdSDKComposite::Init()
 }
 
 // Called as a result of clicking Login() from the widget
-int CUdSDKComposite::LoginFunction()
+int UUDSubsystem::LoginFunction()
 {
 	// Logging startup values at login
 	UE_LOG(LogTemp, Display, TEXT("Auth values at start of Login() function"));
@@ -188,15 +187,13 @@ int CUdSDKComposite::LoginFunction()
 	}
 	
 	LoginFlag = true;
-	LoginDelegate.Broadcast();
-	
+
 	return error;
 }
 
-int CUdSDKComposite::Exit()
+int UUDSubsystem::Exit()
 {
 	//FScopeLock ScopeLock(&CallMutex);
-	ExitFrontDelegate.Broadcast();
 	enum udError error = udE_Failure;
 
 	ViewExtension = nullptr;
@@ -259,12 +256,10 @@ int CUdSDKComposite::Exit()
 		}
 	}
 	
-	ExitLaterDelegate.Broadcast();
 	return error;
 }
 
-//PRAGMA_DISABLE_OPTIMIZATION
-int CUdSDKComposite::Load(uint32 InUniqueID, TSharedPtr<FUdAsset> OutAssert)
+int UUDSubsystem::Load(uint32 InUniqueID, TSharedPtr<FUdAsset> OutAssert)
 {
 	enum udError error = udE_Failure;
 
@@ -346,86 +341,8 @@ int CUdSDKComposite::Load(uint32 InUniqueID, TSharedPtr<FUdAsset> OutAssert)
 
 	return error;
 }
-//PRAGMA_ENABLE_OPTIMIZATION
 
-//int CUdSDKComposite::AsyncLoad(const TArray<TSharedPtr<FUdAsset>>& asserts)
-//{
-//	//FScopeLock ScopeLock(&CallMutex);
-//
-//	enum udError error = udE_Failure;
-//
-//	if (!LoginFlag)
-//	{
-//		UDSDK_ERROR_MSG("AsyncLoad -> Not logged in!");
-//		return error;
-//	}
-//
-//	CThreadPool::Get()->enqueue([&] {
-//		LoadRunning = true;
-//
-//		std::vector< std::future<int> > results;
-//		std::vector< int > states;
-//
-//		int size = FMath::Min(FPlatformMisc::NumberOfCores(), CThreadPool::Get()->idleCount());
-//		assert(size && "ThreadPool is NULL");
-//		for (int i = 0; i < size; i++)
-//		{
-//			results.emplace_back(CThreadPool::Get()->enqueue(C_P3(CUdSDKComposite::LoadThread, this), i, size, asserts));
-//			states.emplace_back(0);
-//		}
-//		for (int i = 0; i < size; i++)
-//		{
-//			states[i] = results[i].get();
-//		}
-//		bool loop;
-//		do
-//		{
-//			loop = false;
-//			for (int i = 0; i < size; i++)
-//			{
-//				if (states[i] == 0)
-//					loop = true;
-//			}
-//		} while (loop);
-//
-//		LoadRunning = false;
-//
-//		//if (load_finished_func)
-//		//	load_finished_func();
-//		//
-//		//async_load_render();
-//
-//	});
-//
-//	return udE_Success;
-//}
-
-int CUdSDKComposite::AsyncLoad(uint32 InUniqueID, TSharedPtr<FUdAsset> OutAssert, const FunCP0& InFunc)
-{
-	//FScopeLock ScopeLock(&CallMutex);
-
-	enum udError error = udE_Failure;
-
-	if (!LoginFlag)
-	{
-		UDSDK_ERROR_MSG("AsyncLoad -> Not logged in!");
-		return error;
-	}
-
-	uint32 UniqueID = InUniqueID;
-	TSharedPtr<FUdAsset> Assert = OutAssert;
-	const FunCP0& Func = InFunc;
-	CThreadPool::Get()->enqueue([UniqueID, Assert, Func, this] {
-		Load(UniqueID, Assert);
-		//FPlatformProcess::Sleep(0.025f);
-		if (Func)
-			Func();
-	});
-
-	return udE_Success;
-}
-
-int CUdSDKComposite::Remove(uint32 InUniqueID)
+int UUDSubsystem::Remove(uint32 InUniqueID)
 {
 	FScopeLock ScopeLock(&DataMutex);
 	enum udError error = udE_Success;
@@ -459,28 +376,7 @@ int CUdSDKComposite::Remove(uint32 InUniqueID)
 	return error;
 }
 
-int CUdSDKComposite::AsyncRemove(uint32 InUniqueID, const FunCP0& InFunc)
-{
-	enum udError error = udE_Failure;
-
-	if (!LoginFlag)
-	{
-		UDSDK_ERROR_MSG("AsyncLoad -> Not logged in!");
-		return error;
-	}
-
-	uint32 UniqueID = InUniqueID;
-	const FunCP0 & Func = InFunc;
-	CThreadPool::Get()->enqueue([UniqueID, Func, this] {
-		Remove(UniqueID);
-		if (Func)
-			Func();
-	});
-
-	return udE_Success;
-}
-
-bool CUdSDKComposite::Find(uint32 InUniqueID)
+bool UUDSubsystem::Find(uint32 InUniqueID)
 {
 	FScopeLock ScopeLock(&DataMutex);
 	if (TSharedPtr<FUdAsset> Asset = AssetsMap.FindRef(InUniqueID))
@@ -490,48 +386,11 @@ bool CUdSDKComposite::Find(uint32 InUniqueID)
 	return false;
 }
 
-int CUdSDKComposite::AsyncFind(uint32 InUniqueID, const FunCP1& InFunc)
+int UUDSubsystem::SetTransform(uint32 InUniqueID, const FMatrix& InMatrix)
 {
-	enum udError error = udE_Failure;
+	if (!IsLogin())
+		return -1;
 
-	if (!LoginFlag)
-	{
-		UDSDK_ERROR_MSG("AsyncLoad -> Not logged in!");
-		return error;
-	}
-
-	uint32 UniqueID = InUniqueID;
-	const FunCP1& Func = InFunc;
-	CThreadPool::Get()->enqueue([UniqueID, Func, this] {
-		bool bFind = Find(UniqueID);
-		if (Func)Func(bFind);
-	});
-
-	return udE_Success;
-}
-
-int CUdSDKComposite::AsyncSetTransform(uint32 InUniqueID, const FMatrix& InMatrix)
-{
-	enum udError error = udE_Failure;
-
-	if (!LoginFlag)
-	{
-		UDSDK_ERROR_MSG("AsyncLoad -> Not logged in!");
-		return error;
-	}
-
-	uint32 UniqueID = InUniqueID;
-	const FMatrix& Matrix = InMatrix;
-	CThreadPool::Get()->enqueue([UniqueID, Matrix, this] {
-		SetTransform(UniqueID, Matrix);
-	});
-
-	return udE_Success;
-}
-
-//PRAGMA_DISABLE_OPTIMIZATION
-int CUdSDKComposite::SetTransform(uint32 InUniqueID, const FMatrix& InMatrix)
-{
 	// TODO
 	// BUG - Potentially throws here if you change scenes at all? OR While streaming UDS?
 	
@@ -602,7 +461,7 @@ int CUdSDKComposite::SetTransform(uint32 InUniqueID, const FMatrix& InMatrix)
 }
 
 // The main function for rendering out UD images
-int CUdSDKComposite::CaptureUDSImage(const FSceneView& View)
+int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 {
 	// TODO - If Correct width/height can be marshaled into this function, we may not require the EngineSubsystem below
 	// possible refactor here later ...
@@ -762,8 +621,7 @@ int CUdSDKComposite::CaptureUDSImage(const FSceneView& View)
 	return error;
 }
 
-//PRAGMA_ENABLE_OPTIMIZATION
-int CUdSDKComposite::RecreateUDView(int32 InWidth, int32 InHeight, float InFOV)
+int UUDSubsystem::RecreateUDView(int32 InWidth, int32 InHeight, float InFOV)
 {
 	enum udError error = udE_Success;
 	if (InWidth == Width && InHeight == Height)
@@ -868,7 +726,7 @@ static int udiv(int x, int y)
 	return x / y + (x % y != 0);
 }
 
-//int CUdSDKComposite::LoadThread(int id, int size, const TArray<TSharedPtr<FUdAsset>>& asserts)
+//int UUDSubsystem::LoadThread(int id, int size, const TArray<TSharedPtr<FUdAsset>>& asserts)
 //{
 //	int length = asserts.Num();
 //	int step = udiv(length, size);

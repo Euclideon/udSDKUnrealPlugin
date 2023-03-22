@@ -2,7 +2,7 @@
 #include "Engine/World.h"
 #include "UdSDKMacro.h"
 #include "UdSDKDefine.h"
-#include "UdSDKComposite.h"
+#include "UDSubsystem.h"
 
 /** Represents a UArrowComponent to the scene manager. */
 class FPointcloudSceneProxy final : public FPrimitiveSceneProxy
@@ -87,12 +87,10 @@ void UUdPointCloudRoot::UpdatePointCloudTransform(const FMatrix& InMatrix)
 {
 	UE_LOG(LogTemp, Warning, TEXT("%s calling!"), TEXT(__FUNCTION__));
 
-	if (!CUdSDKComposite::Get()->IsLogin())
-	{
-		return;
-	}
+	UUDSubsystem* MySubsystem = GEngine->GetEngineSubsystem<UUDSubsystem>();
 
-	CUdSDKComposite::Get()->AsyncSetTransform(GetUniqueID(), InMatrix);
+	if (MySubsystem)
+		MySubsystem->SetTransform(GetUniqueID(), InMatrix);
 }
 
 void UUdPointCloudRoot::SetUrl(FString InUrl)
@@ -118,7 +116,9 @@ void UUdPointCloudRoot::LoadPointCloud()
 	if (pAsset.Get())
 		return;
 
-	if (!CUdSDKComposite::Get()->IsLogin())
+	UUDSubsystem* MySubsystem = GEngine->GetEngineSubsystem<UUDSubsystem>();
+
+	if (!MySubsystem)
 		return;
 
 	if (Url.IsEmpty())
@@ -129,50 +129,34 @@ void UUdPointCloudRoot::LoadPointCloud()
 	pAsset = MakeShared<FUdAsset>(FUdAsset());
 	pAsset->url = GetUrl();
 
-	CUdSDKComposite::Get()->AsyncLoad(GetUniqueID(), pAsset, [this]
-	{
-		// TODO
-		// BUG #1 Causes an editor exception error when switching scenes partway through a load in the editor
-		// BUG #2 Causes an exception if the user rapidly switches menus before Ud has had time to load
-		// Repro steps: Click login, then switch to a new scene, then switch back OR click login then switch to new scene
-
-		if (IsValid(this)) // At this point, I'm not even sure checking Isvalid(this) is safe beacuse this actior could be entirely unloaded by the time this function calls
-		{
-			UE_LOG(LogTemp, Warning, TEXT("This UDPointCloud is valid"));
-			CUdSDKComposite::Get()->AsyncSetTransform(GetUniqueID(), GetComponentToWorld().ToMatrixWithScale());
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("This UDPointCloud is	 NOT valid"));
-		}
-	});
+	MySubsystem->Load(GetUniqueID(), pAsset);
+	MySubsystem->SetTransform(GetUniqueID(), GetComponentToWorld().ToMatrixWithScale());
 }
 
 void UUdPointCloudRoot::ReloadPointCloud()
 {
 	UE_LOG(LogTemp, Warning, TEXT("%s calling..."), TEXT(__FUNCTION__));
 
-	if (!CUdSDKComposite::Get()->IsLogin())
+	UUDSubsystem* MySubsystem = GEngine->GetEngineSubsystem<UUDSubsystem>();
+
+	if (!MySubsystem->IsLogin())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Not duplicated for PIE"));
 		return;
 	}
 
-	CUdSDKComposite::Get()->AsyncRemove(GetUniqueID(), [this]
-	{
-		if (Url.IsEmpty())
-			return;
+	MySubsystem->Remove(GetUniqueID());
 
-		const FTransform& Transform = GetRelativeTransform();
-		pAsset = nullptr;
-		pAsset = MakeShared<FUdAsset>(FUdAsset());
-		pAsset->url = GetUrl();
+	if (Url.IsEmpty())
+		return;
 
-		CUdSDKComposite::Get()->AsyncLoad(GetUniqueID(), pAsset, [this]
-		{
-			CUdSDKComposite::Get()->AsyncSetTransform(GetUniqueID(), GetComponentToWorld().ToMatrixWithScale());
-		});
-	});
+	const FTransform& Transform = GetRelativeTransform();
+	pAsset = nullptr;
+	pAsset = MakeShared<FUdAsset>(FUdAsset());
+	pAsset->url = GetUrl();
+
+	MySubsystem->Load(GetUniqueID(), pAsset);
+	MySubsystem->SetTransform(GetUniqueID(), GetComponentToWorld().ToMatrixWithScale());
 }
 
 void UUdPointCloudRoot::DestroyPointCloud()
@@ -182,9 +166,10 @@ void UUdPointCloudRoot::DestroyPointCloud()
 		return;
 	}
 
-	CUdSDKComposite::Get()->AsyncRemove(GetUniqueID(), [this] {
-		pAsset = nullptr;
-	});
+	UUDSubsystem* MySubsystem = GEngine->GetEngineSubsystem<UUDSubsystem>();
+
+	MySubsystem->Remove(GetUniqueID());
+	pAsset = nullptr;
 }
 
 void UUdPointCloudRoot::LoginPointCloud()

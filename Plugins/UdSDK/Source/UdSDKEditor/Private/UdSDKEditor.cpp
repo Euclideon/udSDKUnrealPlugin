@@ -7,7 +7,7 @@
 #include "SUdSDKAssetsPanel.h"
 #include "Misc/MessageDialog.h"
 #include "ToolMenus.h"
-#include "Settings/ObjectStorageSettings.h"
+#include "ObjectStorageSettings.h"
 #include "ObjectStorageSettings/ObjectStorageSettingsDetails.h"
 #include "ISettingsModule.h"
 #include "Widgets/Docking/SDockTab.h"

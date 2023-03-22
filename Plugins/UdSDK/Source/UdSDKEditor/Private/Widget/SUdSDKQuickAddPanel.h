@@ -36,8 +36,6 @@ private:
   void AddItemToLevel(TSharedRef<QuickAddItem> item);
   void AddBlankPointCloudToLevel();
   void AddPointCloudToLevel(TSharedRef<QuickAddItem> item);
-  void AddPointOfInterestToLevel();
-  void AddPolygonToLevel();
 
   TArray<TSharedRef<QuickAddItem>> QuickAddItems;
   std::unordered_set<std::string> ItemsBeingAdded;

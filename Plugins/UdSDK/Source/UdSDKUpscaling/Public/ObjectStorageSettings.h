@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Core/ObjectStorageSettingsBase.h"
+#include "ObjectStorageSettingsBase.h"
 #include "ObjectStorageSettings.generated.h"
 
 UCLASS(config = ObjectStorageSettings)

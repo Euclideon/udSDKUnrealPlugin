@@ -10,56 +10,56 @@
 #include "UdSDKMacro.h"
 #include "UdSDKDefine.h"
 #include "SceneView.h"
-#include "Utils/CSingleton.h"
-#include "Utils/CThreadPool.h"
+
+#include "UDSubsystem.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FUdLoginDelegate);
 DECLARE_MULTICAST_DELEGATE(FUdExitDelegate);
 
 class FUdSDKCompositeViewExtension;
-// TODO - Keep singleton or use EngineSubsystem?
-class CUdSDKComposite : public CSingleton<CUdSDKComposite>
+
+UCLASS()
+class UDSDKUPSCALING_API UUDSubsystem : public UEngineSubsystem
 {
+	GENERATED_BODY()
+
 public:
-	CUdSDKComposite();
-	~CUdSDKComposite();
+	UUDSubsystem();
+	~UUDSubsystem();
+
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void Deinitialize() override;
 
 	int LoginFunction();
 	int Exit();
 
 	int Load(uint32 InUniqueID, TSharedPtr<FUdAsset> OutAssert);
-	int AsyncLoad(uint32 InUniqueID, TSharedPtr<FUdAsset> OutAssert, const FunCP0& InFunc = nullptr);
-
 	int Remove(uint32 InUniqueID);
-	int AsyncRemove(uint32 InUniqueID,const FunCP0 & InFunc = nullptr);
-
 	bool Find(uint32 InUniqueID);
-	int AsyncFind(uint32 InUniqueID, const FunCP1& InFunc = nullptr);
-
-	int AsyncSetTransform(uint32 InUniqueID, const FMatrix& InMatrix);
 	int SetTransform(uint32 InUniqueID, const FMatrix& InMatrix);
 
-	bool IsLogin() const {
-		return LoginFlag;
-	};
+	UFUNCTION(BlueprintCallable)
+	bool IsLogin() const { return LoginFlag; };
 
-	FTexture2DRHIRef GetColorTexture()const {
-		return ColorTexture;
-	};
+	FTexture2DRHIRef GetColorTexture()const { return ColorTexture; };
+	FTexture2DRHIRef GetDepthTexture()const { return DepthTexture; };
 
-	FTexture2DRHIRef GetDepthTexture()const {
-		return DepthTexture;
-	};
-
-	bool IsValid() const {
-		return IsLogin() && GetColorTexture().IsValid() && GetDepthTexture().IsValid() && InstanceArray.Num() > 0;
-	};
+	bool IsValid() const { return IsLogin() && GetColorTexture().IsValid() && GetDepthTexture().IsValid() && InstanceArray.Num() > 0; };
 
 	int CaptureUDSImage(const FSceneView& View);
 
-	FUdLoginDelegate LoginDelegate;
-	FUdExitDelegate ExitFrontDelegate;
-	FUdExitDelegate ExitLaterDelegate;
+protected:
+	UPROPERTY(BlueprintReadOnly)
+	FString ServerUrl;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString Username;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString APIKey;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool Offline;
 
 private:
 	int Init();
@@ -71,11 +71,6 @@ private:
 
 	//bool InitFlag;
 	bool LoginFlag;
-
-	FString ServerUrl;
-	FString Username;
-	FString APIKey;
-	bool Offline;
 
 	struct udContext* pContext = NULL;
 	struct udContextPartial* pContextPartial = NULL; // New 5.1 context partial for web based logins

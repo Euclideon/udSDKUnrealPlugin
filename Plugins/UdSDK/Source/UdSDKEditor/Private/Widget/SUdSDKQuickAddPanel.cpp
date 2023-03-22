@@ -1,8 +1,6 @@
 
 #include "SUdSDKQuickAddPanel.h"
 #include "UdSDKEditorStyle.h"
-#include "Actors/UdPointOfInterest.h"
-#include "Actors/UdPolygon.h"
 #include "Editor.h"
 #include "PropertyCustomizationHelpers.h"
 #include "Styling/SlateStyle.h"
@@ -162,32 +160,6 @@ void SUdSDKQuickAddPanel::AddPointCloudToLevel(TSharedRef<QuickAddItem> item) {
 
 }
 
-void SUdSDKQuickAddPanel::AddPointOfInterestToLevel() 
-{
-    UWorld* pCurrentWorld = GEditor->GetEditorWorldContext().World();
-    ULevel* pCurrentLevel = pCurrentWorld->GetCurrentLevel();
-
-    GEditor->AddActor(
-        pCurrentLevel,
-        AUdPointOfInterest::StaticClass(),
-        FTransform(),
-        false,
-        RF_Public | RF_Transactional);
-}
-
-void SUdSDKQuickAddPanel::AddPolygonToLevel()
-{
-    UWorld* pCurrentWorld = GEditor->GetEditorWorldContext().World();
-    ULevel* pCurrentLevel = pCurrentWorld->GetCurrentLevel();
-
-    GEditor->AddActor(
-        pCurrentLevel,
-        AUdPolygon::StaticClass(),
-        FTransform(),
-        false,
-        RF_Public | RF_Transactional);
-}
-
 void SUdSDKQuickAddPanel::AddBlankPointCloudToLevel()
 {
   UWorld* pCurrentWorld = GEditor->GetEditorWorldContext().World();
@@ -206,8 +178,7 @@ void SUdSDKQuickAddPanel::AddItemToLevel(TSharedRef<QuickAddItem> item)
 
     if (item->type == QuickAddItemType::EPointCloud)
     {
-        bool isBlankPointCloud = item->type == QuickAddItemType::EPointCloud && 
-            item->url.empty();
+        bool isBlankPointCloud = item->type == QuickAddItemType::EPointCloud && item->url.empty();
         if (isBlankPointCloud)
         {
             AddBlankPointCloudToLevel();
@@ -217,15 +188,5 @@ void SUdSDKQuickAddPanel::AddItemToLevel(TSharedRef<QuickAddItem> item)
         {
             AddPointCloudToLevel(item);
         }
-    }
-    else if (item->type == QuickAddItemType::EPointOfInterest)
-    {
-        AddPointOfInterestToLevel();
-        this->ItemsBeingAdded.erase(item->name);
-    }
-    else if (item->type == QuickAddItemType::EPolygon)
-    {
-        AddPolygonToLevel();
-        this->ItemsBeingAdded.erase(item->name);
     }
 }

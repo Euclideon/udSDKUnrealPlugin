@@ -1,8 +1,6 @@
 #pragma once
 
-// #include "Dialogs/CustomDialog.h"
 #include "Dialogs/Dialogs.h"
-//#include "/Engine/Source/Editor/UnrealEd/Public/Dialogs/CustomDialog.h"
 #include "Widgets/SCompoundWidget.h"
 
 class FArguments;
@@ -13,10 +11,7 @@ class SUdSDKMainPanel : public SCompoundWidget {
 
   void Construct(const FArguments& InArgs);
 
-  virtual void Tick(
-      const FGeometry& AllottedGeometry,
-      const double InCurrentTime,
-      const float InDeltaTime) override;
+  virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 
 private:
   TSharedRef<SWidget> Toolbar();

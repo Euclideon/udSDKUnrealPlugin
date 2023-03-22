@@ -10,7 +10,7 @@
 #include "Styling/SlateStyleRegistry.h"
 #include "Widgets/Input/SHyperlink.h"
 #include "Widgets/Layout/SScrollBox.h"
-#include "UdSDKFunctionLibrary.h"
+#include "UDSubsystem.h"
 
 void SUdSDKMainPanel::Construct(const FArguments& InArgs) {
   ChildSlot
@@ -29,7 +29,8 @@ void SUdSDKMainPanel::Tick(
 }
 
 static bool isSignedIn() {
-    return UUdSDKFunctionLibrary::IsLogin();
+    UUDSubsystem* MySubsystem = GEngine->GetEngineSubsystem<UUDSubsystem>();
+    return MySubsystem->IsLogin();
 }
 
 TSharedRef<SWidget> SUdSDKMainPanel::Toolbar() {
@@ -87,8 +88,7 @@ void SUdSDKMainPanel::addFromAssets() {
   pTabManager->TryInvokeTab(FTabId(TEXT("UdSDKAssets")));
 }
 
-void SUdSDKMainPanel::signOut() { 
-    if(UUdSDKFunctionLibrary::IsLogin())
-        UUdSDKFunctionLibrary::Exit();
+void SUdSDKMainPanel::signOut() {
+    // Do nothing
 }
 

@@ -1,5 +1,5 @@
 // Copyright (C) RenZhai.2021.All Rights Reserved.
-#include "Settings/Core/ObjectStorageSettingsBase.h"
+#include "ObjectStorageSettingsBase.h"
 
 void UObjectStorageSettingsBase::SaveObjectStorageConfig()
 {

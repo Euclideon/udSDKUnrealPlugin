@@ -1,6 +1,6 @@
 #include "SUdSDKLoginPanel.h"
 #include "UdSDKEditorStyle.h"
-#include "Settings/ObjectStorageSettings.h"
+#include "ObjectStorageSettings.h"
 #include "HAL/PlatformApplicationMisc.h"
 #include "Misc/App.h"
 #include "Styling/SlateStyle.h"
@@ -18,8 +18,7 @@
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Layout/SGridPanel.h"
 
-#include "Settings/ObjectStorageSettings.h"
-#include "UdSDKFunctionLibrary.h"
+#include "ObjectStorageSettings.h"
 
 template<class T>
 void SaveObjectConfig()
@@ -161,7 +160,7 @@ void SUdSDKLoginPanel::Construct(const FArguments& InArgs)
            .Padding(0)[connectionWidget.ToSharedRef()]];
 }
 
-FReply SUdSDKLoginPanel::SignIn() 
+FReply SUdSDKLoginPanel::SignIn()
 {
     UE_LOG(LogTemp, Display, TEXT("Attemping SignIn ..."));
     GetMutableDefault<UObjectStorageSettings>()->ServerPath = FName(*ServerName);
@@ -170,19 +169,7 @@ FReply SUdSDKLoginPanel::SignIn()
     GetMutableDefault<UObjectStorageSettings>()->Offline = Offline;
     SaveObjectConfig<UObjectStorageSettings>();
 
-   
-    if (!UUdSDKFunctionLibrary::IsLogin())
-    {
-        UUdSDKFunctionLibrary::Login();
-    }
-
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("UUdSDKFunctionLibrary::IsLogin() returning true"));
-    }
-        
-
-  return FReply::Handled();
+    return FReply::Handled();
 }
 
 FReply SUdSDKLoginPanel::CopyAuthorizeUrlToClipboard() {
@@ -192,8 +179,5 @@ FReply SUdSDKLoginPanel::CopyAuthorizeUrlToClipboard() {
 }
 
 void SUdSDKLoginPanel::LaunchBrowserAgain() {
-  FPlatformProcess::LaunchURL(
-      TEXT("LaunchBrowserAgain"),
-      NULL,
-      NULL);
+  FPlatformProcess::LaunchURL(TEXT("LaunchBrowserAgain"), NULL, NULL);
 }
