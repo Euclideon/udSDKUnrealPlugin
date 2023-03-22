@@ -5,7 +5,7 @@
 #include "UdPointCloudRoot.generated.h"
 
 
-UCLASS(Blueprintable, BlueprintType)
+UCLASS(BlueprintType)
 class UUdPointCloudRoot : public USceneComponent
 {
 	GENERATED_BODY()
