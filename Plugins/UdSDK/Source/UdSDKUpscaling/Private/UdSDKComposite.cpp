@@ -614,7 +614,7 @@ int CUdSDKComposite::AsyncFind(uint32 InUniqueID, const FunCP1& InFunc)
 	return udE_Success;
 }
 
-int CUdSDKComposite::AsyncSetTransform(uint32 InUniqueID, const FTransform& InTransform)
+int CUdSDKComposite::AsyncSetTransform(uint32 InUniqueID, const FMatrix& InMatrix)
 {
 	enum udError error = udE_Failure;
 
@@ -625,16 +625,16 @@ int CUdSDKComposite::AsyncSetTransform(uint32 InUniqueID, const FTransform& InTr
 	}
 
 	uint32 UniqueID = InUniqueID;
-	const FTransform& Transform = InTransform;
-	CThreadPool::Get()->enqueue([UniqueID, Transform, this] {
-		SetTransform(UniqueID, Transform);
+	const FMatrix& Matrix = InMatrix;
+	CThreadPool::Get()->enqueue([UniqueID, Matrix, this] {
+		SetTransform(UniqueID, Matrix);
 	});
 
 	return udE_Success;
 }
 
 //PRAGMA_DISABLE_OPTIMIZATION
-int CUdSDKComposite::SetTransform(uint32 InUniqueID, const FTransform& InTransform)
+int CUdSDKComposite::SetTransform(uint32 InUniqueID, const FMatrix& InMatrix)
 {
 	// TODO
 	// BUG - Potentially throws here if you change scenes at all? OR While streaming UDS?
@@ -656,11 +656,19 @@ int CUdSDKComposite::SetTransform(uint32 InUniqueID, const FTransform& InTransfo
 			{
 				if (inst.pPointCloud == pPointCloud)
 				{
-					FTransform t;
-					t.SetLocation(InTransform.GetLocation());
-					t.SetScale3D(InTransform.GetScale3D() * Asset->scale_xyz);
-					t.SetRotation(InTransform.GetRotation());
-					FuncMat2Array(inst.matrix, t.ToMatrixWithScale());
+					//FTransform t;
+					//t.SetLocation(InTransform.GetLocation());
+					//t.SetScale3D(InTransform.GetScale3D() * Asset->scale_xyz);
+					//t.SetRotation(InTransform.GetRotation());
+					//FuncMat2Array(inst.matrix, t.ToMatrixWithScale());
+
+					for (int i = 0; i < 4; ++i)
+					{
+						inst.matrix[0 + i * 4] = InMatrix.M[i][0];
+						inst.matrix[1 + i * 4] = InMatrix.M[i][1];
+						inst.matrix[2 + i * 4] = InMatrix.M[i][2];
+						inst.matrix[3 + i * 4] = InMatrix.M[i][3];
+					}
 					
 					//UDSDK_SCREENDE_DEBUG_MSG("SetTransform::Location : %d : %s", InUniqueID, *InTransform.GetLocation().ToString());
 					//inst.matrix[12] = InTransform.GetLocation().X;

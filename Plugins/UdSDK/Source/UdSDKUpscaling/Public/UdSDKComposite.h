@@ -37,8 +37,8 @@ public:
 	bool Find(uint32 InUniqueID);
 	int AsyncFind(uint32 InUniqueID, const FunCP1& InFunc = nullptr);
 
-	int AsyncSetTransform(uint32 InUniqueID, const FTransform& InTransform);
-	int SetTransform(uint32 InUniqueID, const FTransform& InTransform);
+	int AsyncSetTransform(uint32 InUniqueID, const FMatrix& InMatrix);
+	int SetTransform(uint32 InUniqueID, const FMatrix& InMatrix);
 
 	int AsyncSetSelected(uint32 InUniqueID, bool InSelect);
 	int SetSelected(uint32 InUniqueID, bool InSelect);

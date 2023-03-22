@@ -14,7 +14,6 @@
 #include "Widgets/Layout/SUniformGridPanel.h"
 #include "Widgets/Views/SListView.h"
 #include "Utils/JsonLoader.h"
-#include "Actors/UdPointCloud.h"
 #include "UdSDKFunctionLibrary.h"
 #include <functional>
 #include <map>
@@ -24,12 +23,7 @@ static FName ColumnName_Type = "Type";
 static FName ColumnName_DateAdded = "DateAdded";
 
 
-SUdSDKAssetsPanel::SUdSDKAssetsPanel()
-    : LoginDelegateHandle(),
-      ExitDelegateHandle(),
-      PListView(nullptr),
-      Assets(),
-      PSelection(nullptr) 
+SUdSDKAssetsPanel::SUdSDKAssetsPanel() : LoginDelegateHandle(), ExitDelegateHandle(), PListView(nullptr), Assets(), PSelection(nullptr) 
 {
     this->SortColumnName = ColumnName_DateAdded;
     this->SortMode = EColumnSortMode::Type::Descending;
@@ -37,6 +31,7 @@ SUdSDKAssetsPanel::SUdSDKAssetsPanel()
     LoginDelegateHandle = UUdSDKFunctionLibrary::AddLoginDelegateLambda([this] {
         this->Refresh();
     });
+
     ExitDelegateHandle = UUdSDKFunctionLibrary::AddExitDelegateLambda([this] {
         this->Refresh();
     });
@@ -434,17 +429,12 @@ void SUdSDKAssetsPanel::AddAssetToLevel(TSharedPtr<FUdAsset> item)
     ULevel* pCurrentLevel = pCurrentWorld->GetCurrentLevel();
 
 
-    AActor* pNewActor = GEditor->AddActor(
-        pCurrentLevel,
-        AUdPointCloud::StaticClass(),
-        FTransform(),
-        false,
-        RF_Public | RF_Transactional);
-
-    AUdPointCloud* pPointCloud = Cast<AUdPointCloud>(pNewActor);
-    pPointCloud->SetUrl(item->url);
-    pPointCloud->RefreshPointCloud();
-    pPointCloud->RerunConstructionScripts();
+    //AActor* pNewActor = GEditor->AddActor(pCurrentLevel, AUdPointCloud::StaticClass(), FTransform(), false, RF_Public | RF_Transactional);
+    //
+    //AUdPointCloud* pPointCloud = Cast<AUdPointCloud>(pNewActor);
+    //pPointCloud->SetUrl(item->url);
+    //pPointCloud->RefreshPointCloud();
+    //pPointCloud->RerunConstructionScripts();
 }
 
 namespace {

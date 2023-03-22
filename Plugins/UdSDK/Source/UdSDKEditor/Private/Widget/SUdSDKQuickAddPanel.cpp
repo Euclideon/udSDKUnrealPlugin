@@ -1,7 +1,6 @@
 
 #include "SUdSDKQuickAddPanel.h"
 #include "UdSDKEditorStyle.h"
-#include "Actors/UdPointCloud.h"
 #include "Actors/UdPointOfInterest.h"
 #include "Actors/UdPolygon.h"
 #include "Editor.h"
@@ -194,12 +193,7 @@ void SUdSDKQuickAddPanel::AddBlankPointCloudToLevel()
   UWorld* pCurrentWorld = GEditor->GetEditorWorldContext().World();
   ULevel* pCurrentLevel = pCurrentWorld->GetCurrentLevel();
   
-  GEditor->AddActor(
-      pCurrentLevel,
-      AUdPointCloud::StaticClass(),
-      FTransform(),
-      false,
-      RF_Public | RF_Transactional);
+  //GEditor->AddActor(pCurrentLevel, AUdPointCloud::StaticClass(), FTransform(), false, RF_Public | RF_Transactional);
 }
 
 void SUdSDKQuickAddPanel::AddItemToLevel(TSharedRef<QuickAddItem> item)
