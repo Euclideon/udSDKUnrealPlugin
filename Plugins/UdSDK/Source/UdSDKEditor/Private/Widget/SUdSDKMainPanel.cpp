@@ -36,19 +36,12 @@ TSharedRef<SWidget> SUdSDKMainPanel::Toolbar() {
   TSharedRef<FUICommandList> commandList = MakeShared<FUICommandList>();
 
   commandList->MapAction(
-      FUdSDKEditorCommands::Get().AddFromAssets,
-      FExecuteAction::CreateSP(this, &SUdSDKMainPanel::addFromAssets),
-      FCanExecuteAction::CreateStatic(isSignedIn));
-
-  commandList->MapAction(
       FUdSDKEditorCommands::Get().SignOut,
       FExecuteAction::CreateSP(this, &SUdSDKMainPanel::signOut),
       FCanExecuteAction::CreateStatic(isSignedIn));
 
   FToolBarBuilder builder(commandList, FMultiBoxCustomization::None);
- //
-    builder.AddToolBarButton(FUdSDKEditorCommands::Get().AddFromAssets);
-    builder.AddToolBarButton(FUdSDKEditorCommands::Get().SignOut);
+  builder.AddToolBarButton(FUdSDKEditorCommands::Get().SignOut);
 
   return builder.MakeWidget();
 }

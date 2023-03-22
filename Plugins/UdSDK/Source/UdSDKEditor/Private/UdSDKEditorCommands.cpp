@@ -13,13 +13,6 @@ void FUdSDKEditorCommands::RegisterCommands()
         FInputGesture());
 
     UI_COMMAND(
-        AddFromAssets,
-        "Assets",
-        "Add a asset list to this level",
-        EUserInterfaceActionType::Button,
-        FInputChord());
-
-    UI_COMMAND(
         SignOut,
         "Sign Out",
         "Sign out of UdSDK",
