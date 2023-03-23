@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "ObjectStorageSettings/ObjectStorageSettingsDetails.h"
+#include "ObjectStorageSettingsDetails.h"
 #include "ObjectStorageSettings.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
