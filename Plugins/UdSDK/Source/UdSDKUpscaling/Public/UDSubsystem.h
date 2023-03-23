@@ -53,13 +53,7 @@ protected:
 	FString ServerUrl;
 
 	UPROPERTY(BlueprintReadOnly)
-	FString Username;
-
-	UPROPERTY(BlueprintReadOnly)
 	FString APIKey;
-
-	UPROPERTY(BlueprintReadOnly)
-	bool Offline;
 
 private:
 	int Init();

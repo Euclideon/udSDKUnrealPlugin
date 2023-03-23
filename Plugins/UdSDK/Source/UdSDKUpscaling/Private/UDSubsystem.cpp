@@ -72,20 +72,17 @@ int UUDSubsystem::Init()
 	if (const UObjectStorageSettings* Settings = GetDefault<UObjectStorageSettings>())
 	{
 		ServerUrl = Settings->ServerPath.ToString();
-		Username = Settings->Username.ToString();
 		APIKey = Settings->Password.ToString();
-		Offline = Settings->Offline;
-		if((ServerUrl.IsEmpty() || Username.IsEmpty() || APIKey.IsEmpty()) && !Offline)
+		if (ServerUrl.IsEmpty() || APIKey.IsEmpty())
 			error = udE_Failure;
 	}
 	else
 	{
 		ServerUrl = "";
-		Username = "";
 		APIKey = "";
-		Offline = false;
 		error = udE_Failure;
 	}
+
 	return error;
 }
 
@@ -94,10 +91,6 @@ int UUDSubsystem::LoginFunction()
 {
 	// Logging startup values at login
 	UE_LOG(LogTemp, Display, TEXT("Auth values at start of Login() function"));
-	UE_LOG(LogTemp, Display, TEXT("Offline: %d"), (int)Offline);
-	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
-	UE_LOG(LogTemp, Display, TEXT("Username: %s"), *Username);
-	// UE_LOG(LogTemp, Display, TEXT("Password: %s"), *APIKey);
 	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
 
 	// Get an error ready and default to failure
@@ -114,21 +107,11 @@ int UUDSubsystem::LoginFunction()
 	// Will fail if logins are not entered into the UI etc
 	error = (udError)Init(); // Maybe fix this cast?
 	
-	// Logging startup values at login
-	UE_LOG(LogTemp, Display, TEXT("Auth after Init() value"));
-	UE_LOG(LogTemp, Display, TEXT("Offline: %d"), (int)Offline);
-	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
-	UE_LOG(LogTemp, Display, TEXT("Username: %s"), *Username);
-	// UE_LOG(LogTemp, Display, TEXT("Password: %s"), *APIKey); // Probably dont want to log API keys maybe
-	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
-	
 	if (error != udE_Success) // Should fail basically due to user error only
 	{
 		UDSDK_ERROR_MSG("Initialization failed!");
 		UE_LOG(LogTemp, Warning, TEXT("Auth values after failing initialization: "));
-		UE_LOG(LogTemp, Warning, TEXT("Offline: %d"), (int)Offline);
 		UE_LOG(LogTemp, Warning, TEXT("Server: %s"), *ServerUrl);
-		UE_LOG(LogTemp, Warning, TEXT("Username: %s"), *Username);
 		
 		UE_LOG(LogTemp, Warning, TEXT("Current State of Connect Attempt: %d "), error);
 		return error;
@@ -139,41 +122,20 @@ int UUDSubsystem::LoginFunction()
 		InstanceArray.Reset();
 	}
 
-	// Should keep or nah? Double check with sam
-	error = udConfig_IgnoreCertificateVerification(true); // Not sure if we still need this?
+	const FString ApplicationVersion = "0.0";
+	const FString ApplicationName = "UE5_Client";
 
+	error = udContext_ConnectWithKey(&pContext, TCHAR_TO_UTF8(*ServerUrl), TCHAR_TO_UTF8(*ApplicationName), TCHAR_TO_UTF8(*ApplicationVersion), TCHAR_TO_UTF8(*APIKey));
 	if (error != udE_Success)
 	{
-		UDSDK_ERROR_MSG("udConfig_IgnoreCertificateVerification(true) error : %s", GetError(error));
-		return error;
-	}
-	
-	{
-		const FString ApplicationVersion = "0.0";
-		const FString ApplicationName = "UE5_Client";
-
-		error = udContext_ConnectWithKey(&pContext,
-			TCHAR_TO_UTF8(*ServerUrl),
-			TCHAR_TO_UTF8(*ApplicationName),
-			TCHAR_TO_UTF8(*ApplicationVersion),
-			TCHAR_TO_UTF8(*APIKey));
-	}
-
-	// Log the error state
-	UE_LOG(LogTemp, Warning, TEXT("%s, Current State of Connect Attempt: %d "), TEXT(__FUNCTION__), error);
-
-	
-	
-	if (error != udE_Success)
-	{
-		UDSDK_ERROR_MSG("udContext_Connect error : %s Offline : %d", GetError(error), (int)Offline);
+		UDSDK_ERROR_MSG("udContext_ConnectWithKey (Error: %s)", GetError(error));
 		return error;
 	}
 
 	error = udRenderContext_Create(pContext, &pRenderer);
 	if (error != udE_Success)
 	{
-		UDSDK_ERROR_MSG("udRenderContext_Create error : %s", GetError(error));
+		UDSDK_ERROR_MSG("udRenderContext_Create (Error: %s)", GetError(error));
 		return error;
 	}
 
@@ -198,10 +160,8 @@ int UUDSubsystem::Exit()
 
 	ViewExtension = nullptr;
 
-	ServerUrl = ""; // udstream.euclideon.com and udcloud.euclideon.com
-	Username = "";
+	ServerUrl = ""; // udcloud.com
 	APIKey = "";
-	Offline = false;
 
 	Width = 0;
 	Height = 0;
