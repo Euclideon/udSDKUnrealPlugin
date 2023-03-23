@@ -12,15 +12,9 @@ class UDSDKUPSCALING_API UObjectStorageSettings : public UObjectStorageSettingsB
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(config, EditAnywhere, Category = "UnlimitedDetail|LoginInformation", meta = (ToolTip = ""))
+	UPROPERTY(config, EditAnywhere, Category = "UnlimitedDetail|Licensing", meta = (ToolTip = ""))
 	FName ServerPath = FName("");
 
-	UPROPERTY(config, EditAnywhere, Category = "UnlimitedDetail|LoginInformation", meta = (ToolTip = ""))
-	FName Username = FName("");
-
-	UPROPERTY(config, EditAnywhere, Category = "UnlimitedDetail|LoginInformation", meta = (ToolTip = ""))
+	UPROPERTY(config, EditAnywhere, Category = "UnlimitedDetail|Licensing", meta = (ToolTip = ""))
 	FName Password = FName("");
-
-	UPROPERTY(config, EditAnywhere, Category = "UnlimitedDetail|LoginInformation", meta = (ToolTip = ""))
-	bool Offline = false;
 };
