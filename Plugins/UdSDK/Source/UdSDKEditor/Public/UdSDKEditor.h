@@ -19,13 +19,4 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
-
-private:
-
-	void RegisterMenus();
-
-	TSharedRef<class SDockTab> SpawnUdSDKTab(const class FSpawnTabArgs& TabSpawnArgs);
-
-private:
-	TSharedPtr<class FUICommandList> PluginCommands;
 };
