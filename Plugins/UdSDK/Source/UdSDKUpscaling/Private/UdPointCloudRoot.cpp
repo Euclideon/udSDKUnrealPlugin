@@ -70,6 +70,7 @@ private:
 UUdPointCloudRoot::UUdPointCloudRoot()
 {
 	// Intentionally blank
+	PointCloudHandle = nullptr;
 }
 
 UUdPointCloudRoot::~UUdPointCloudRoot()
