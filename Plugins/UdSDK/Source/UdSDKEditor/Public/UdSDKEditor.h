@@ -25,7 +25,6 @@ private:
 	void RegisterMenus();
 
 	TSharedRef<class SDockTab> SpawnUdSDKTab(const class FSpawnTabArgs& TabSpawnArgs);
-	TSharedRef<class SDockTab> SpawnUdSDKAssetBrowserTab(const class FSpawnTabArgs& TabSpawnArgs);
 
 private:
 	TSharedPtr<class FUICommandList> PluginCommands;

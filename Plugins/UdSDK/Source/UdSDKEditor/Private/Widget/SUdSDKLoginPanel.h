@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Dialogs/CustomDialog.h"
+// #include "Dialogs/CustomDialog.h"
 #include "Widgets/SCompoundWidget.h"
 
 class FArguments;
@@ -25,7 +25,6 @@ private:
 
   FString ServerName;
   FString UserName;
-  FString Password;
+  FString APIKey;
   bool Offline;
-
 };

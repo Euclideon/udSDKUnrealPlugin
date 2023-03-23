@@ -15,9 +15,9 @@ extern "C" {
 //! The major version part of the library version
 # define UDSDK_MAJOR_VERSION 2
 //! The minor version part of the library version
-# define UDSDK_MINOR_VERSION 1
+# define UDSDK_MINOR_VERSION 3
 //! The patch version part of the library version
-# define UDSDK_PATCH_VERSION 0
+# define UDSDK_PATCH_VERSION 1
 
   //!
   //! Stores the version information for the loaded udSDK library.

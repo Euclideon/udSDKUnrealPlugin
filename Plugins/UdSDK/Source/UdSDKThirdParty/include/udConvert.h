@@ -12,6 +12,8 @@
 #include "udError.h"
 #include "udAttributes.h"
 
+#include "udPointBuffer.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -26,19 +28,6 @@ extern "C" {
   struct udConvertContext;
 
   //!
-  //! These are the various source projections
-  //!
-  enum udConvertSourceProjection
-  {
-    udCSP_SourceCartesian, //!< The source is in cartesian already
-    udCSP_SourceLatLong, //!< The source is in LatLong and will need to be converted to Cartesian using the SRID
-    udCSP_SourceLongLat, //!< The source is in LongLat and will need to be converted to Cartesian using the SRID
-    udCSP_SourceEarthCenteredAndFixed, //!< The source points are stored relative to the center of the earth
-
-    udCSP_Count //!< Total number of source projections. Used internally but can be used as an iterator max when displaying different projections.
-  };
-
-  //!
   //! @struct udConvertInfo
   //! Provides a copy of a subset of the convert state
   //!
@@ -51,8 +40,8 @@ extern "C" {
 
     struct udAttributeSet attributes; //!< The attributes in this model
 
-    int32_t ignoredAttributesLength; //! The length of the ignored attributes list
-    const char **ppIgnoredAttributes; //! The list of ignored attributes
+    int32_t ignoredAttributesLength; //!< The length of the ignored attributes list
+    const char **ppIgnoredAttributes; //!< The list of ignored attributes
 
     double globalOffset[3]; //!< This amount is added to every point during conversion. Useful for moving the origin of the entire scene to geolocate
 
@@ -63,6 +52,8 @@ extern "C" {
     uint32_t everyNth; //!< If this value is >1, only every Nth point is included in the model. e.g. 4 means only every 4th point will be included, skipping 3/4 of the points
     uint32_t polygonVerticesOnly; //!< If not 0 it will skip rasterization of polygons in favour of just processing the vertices
     uint32_t retainPrimitives; //!< If not 0 rasterised primitives such as triangles/lines/etc are retained to be rendered at finer resolution if required at runtime
+    uint32_t bakeLighting; //!< if not 0 bake the normals into the colour channel in the output UDS file
+    uint32_t exportOtherEmbeddedAssets; //!< if not 0 export images contained in e57 files
 
     uint32_t overrideResolution; //!< Set to not 0 to stop the resolution from being recalculated
     double pointResolution; //!< The scale to be used in the conversion (either calculated or overriden)
@@ -95,8 +86,8 @@ extern "C" {
     const char *pFilename; //!< Name of the input file
     int64_t pointsCount; //!< This might be an estimate, -1 is no estimate is available
     uint64_t pointsRead; //!< Once conversation begins, this will give an indication of progress
-
-    enum udConvertSourceProjection sourceProjection; //!< What sort of projection this input has
+    double estimatedResolution; //!< The estimated scale of the item
+    int srid; //!< The calculated geospatial reference ID of the item
   };
 
   //!
@@ -140,6 +131,15 @@ extern "C" {
   UDSDKDLL_API enum udError udConvert_SetTempDirectory(struct udConvertContext *pConvertContext, const char *pFolder);
 
   //!
+  //! Sets the bounds and point resolution for the conversion from a previously converted point cloud.
+  //!
+  //! @param pConvertContext The convert context to use to set the point resolution.
+  //! @param pPointCloudBoundsPath The UDS file path to be used to set the bounds and point resolution.
+  //! @return A udError value based on the result of setting the point resolution and min ,max bounds.
+  //!
+  UDSDKDLL_API enum udError udConvert_SetUseBounds(struct udConvertContext *pConvertContext, const char *pPointCloudBoundsPath);
+
+  //!
   //! Sets the point resolution for the conversion.
   //!
   //! @param pConvertContext The convert context to use to set the point resolution.
@@ -164,6 +164,26 @@ extern "C" {
   //! @param pAttributeName The name of the attribute to be restored.
   //!
   UDSDKDLL_API enum udError udConvert_RestoreAttribute(struct udConvertContext *pConvertContext, const char *pAttributeName);
+
+  //!
+  //! Sets the prefix of the attribute, used when displaying values to users.
+  //!
+  //! @param pConvertContext The convert context to use to set the attribute prefix.
+  //! @param pAttributeName The name of the attribute to set the prefix for.
+  //! @param pPrefix The prefix to use for the attribute.
+  //! @note The prefix has a limit of 15 characters, not including the null terminator.
+  //!
+  UDSDKDLL_API enum udError udConvert_SetAttributePrefix(struct udConvertContext *pConvertContext, const char *pAttributeName, const char *pPrefix);
+
+  //!
+  //! Sets the suffix of the attribute, used when displaying values to users.
+  //!
+  //! @param pConvertContext The convert context to use to set the attribute suffix.
+  //! @param pAttributeName The name of the attribute to set the suffix for.
+  //! @param pSuffix The suffix to use for the attribute.
+  //! @note The suffix has a limit of 15 characters, not including the null terminator.
+  //!
+  UDSDKDLL_API enum udError udConvert_SetAttributeSuffix(struct udConvertContext *pConvertContext, const char *pAttributeName, const char *pSuffix);
 
   //!
   //! Sets the SRID for the conversion.
@@ -245,6 +265,24 @@ extern "C" {
   UDSDKDLL_API enum udError udConvert_SetRetainPrimitives(struct udConvertContext *pConvertContext, uint32_t retainPrimitives);
 
   //!
+  //! This function sets the convert context up to set the udCIF_BakeLightning flag allowing the read point function to bake normals into the colour channel
+  //!
+  //! @param pConvertContext The convert context to use to set the polygonVerticesOnly param on.
+  //! @param bakeLighting A boolean value (0 is false) to indicate whether to bake the normals into the colour channel in the output UDS file
+  //! @return A udError value based on the result of setting the retainPrimitives option.
+  //!
+  UDSDKDLL_API enum udError udConvert_SetBakeLighting(struct udConvertContext *pConvertContext, uint32_t bakeLighting);
+
+  //!
+  //! This function sets the convert context up to set the udCIF_ExportImages flag allowing the open function to export images to png or jpg files
+  //!
+  //! @param pConvertContext The convert context to use to set the polygonVerticesOnly param on.
+  //! @param exportImages A boolean value (0 is false) to indicate whether to export or not images contained in e57 files
+  //! @return A udError value based on the result of setting the exportImages option.
+  //!
+  UDSDKDLL_API enum udError udConvert_SetExportOtherEmbeddedAssets(struct udConvertContext *pConvertContext, uint32_t exportImages);
+
+  //!
   //! This adds a metadata key to the output UDS file. There are no restrictions on the key.
   //!
   //! @param pConvertContext The convert context to use to set the metadata key.
@@ -282,10 +320,10 @@ extern "C" {
   //!
   //! @param pConvertContext The convert context to set the input source projection on.
   //! @param index The index of the item to set the source project on.
-  //! @param actualProjection The projection to use for the specified item.
+  //! @param srid The SRID to use for the specified item.
   //! @return A udError value based on the result of setting the source projection.
   //!
-  UDSDKDLL_API enum udError udConvert_SetInputSourceProjection(struct udConvertContext *pConvertContext, uint64_t index, enum udConvertSourceProjection actualProjection);
+  UDSDKDLL_API enum udError udConvert_SetInputSourceProjection(struct udConvertContext *pConvertContext, uint64_t index, int srid);
 
   //!
   //! This provides a way to get the information of the convert context.
@@ -339,6 +377,50 @@ extern "C" {
   //! @note The application should call **udPointCloud_Unload** with `ppCloud` to destroy the object once it's no longer needed.
   //!
   UDSDKDLL_API enum udError udConvert_GeneratePreview(struct udConvertContext *pConvertContext, struct udPointCloud **ppCloud);
+
+  //!
+  //! Callback invoked on pointbuffers after being read in during the convert process to conditionally modify points based on buffer contents
+  //! 
+  //! @param pConvertInput The convert info associated with the current item being processed at the time the callback is invoked
+  //! @param pBuffer The point buffer containing the points currently being read in prior to any processing done by convert (e.g. reprojection)
+  //! @param pUserData Pointer to a struct containing user data used by this function- this may be freed by pCleanUpUserData on completion of processing of convert inputs if necessary
+  //! @return A udError to indicate the success of the postprocessing - returning anything other than udE_Success will cause the conversion to fail
+  //! 
+  typedef enum udError (udConvertPostProcessCallback)(struct udConvertItemInfo *pConvertInput, struct udPointBufferF64 *pBuffer, void *pUserData);
+
+  //!
+  //! Postprocessing to perform on points as they are read in
+  //! 
+  //! @param pContext The convert context 
+  //! @param callback takes the convertInput, a point buffer, a pointer to user data (which must point to memory that is valid for the duration of the convert process); returns udError
+  //! This can be used to modify the points and their attributes as well as modify the contents of the userData Structure
+  //! @param pUserData a pointer to any data used by the callback
+  //! @param pCleanUpUserData a function called with pUserData as the argument once the input has finished processing
+  //!
+  //! @return A udError value based on the result of setting the callback
+  //!
+  UDSDKDLL_API enum udError udConvert_SetPostProcessCallback(struct udConvertContext *pContext, udConvertPostProcessCallback *pCallback, void *pUserData, void(*pCleanUpUserData)(void*));
+
+  //!
+  //! Forces the produced UDS to include the specified attribute despite not being present in any input file. This is useful when these attributes are calculated using a postprocess callback
+  //! 
+  //! @param pContext The convert context 
+  //! @param pAttribute descriptor of the attribute to be added. This is copied by the function
+  //!
+  //! @return A udError value based on the result of setting the forced attribute
+  //! @return udE_CountExceeded if the number of attributes exceeds the limit in a UDS
+  //!
+  UDSDKDLL_API enum udError udConvert_AddOutputAttribute(struct udConvertContext *pContext, struct udAttributeDescriptor *pAttribute);
+
+  //!
+  //! Removes the forced attribute at the index specified from the list
+  //! 
+  //! @param pContext The convert context 
+  //! @param index the index of from the array of forced attributes to remove
+  //!
+  //! @return A udError value based on the result of removing the forced attribute
+  //!
+  UDSDKDLL_API enum udError udConvert_RemoveOutputAttribute(struct udConvertContext *pContext, uint32_t index);
 
 #ifdef __cplusplus
 }

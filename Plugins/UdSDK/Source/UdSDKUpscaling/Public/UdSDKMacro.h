@@ -2,7 +2,6 @@
 
 #pragma once 
 
-#include "Log/UdSDKLog.h"
 #include "HAL/PlatformFilemanager.h"
 #include "Misc/FileHelper.h"
 
@@ -76,7 +75,7 @@ void Func##_Local(FString UploadId, int64  PartCount, int64 Size, int64 InTotal,
 { \
 	SET_WARN_COLOR(COLOR_CYAN); \
 	const FString Msg = FString::Printf(TEXT(Format), ##__VA_ARGS__); \
-	UE_LOG(UdSDKLog, Log, TEXT("%s"), *Msg); \
+	UE_LOG(LogTemp, Log, TEXT("%s"), *Msg); \
 	CLEAR_WARN_COLOR(); \
 }
 
@@ -84,7 +83,7 @@ void Func##_Local(FString UploadId, int64  PartCount, int64 Size, int64 InTotal,
 { \
 	SET_WARN_COLOR(COLOR_CYAN); \
 	const FString Msg = FString::Printf(TEXT(Format), ##__VA_ARGS__); \
-	UE_LOG(UdSDKLog, Log, TEXT("[DEBUG] %s"), *Msg); \
+	UE_LOG(LogTemp, Log, TEXT("[DEBUG] %s"), *Msg); \
 	CLEAR_WARN_COLOR(); \
 }
 
@@ -92,7 +91,7 @@ void Func##_Local(FString UploadId, int64  PartCount, int64 Size, int64 InTotal,
 { \
 	SET_WARN_COLOR(COLOR_CYAN); \
 	const FString Msg = FString::Printf(TEXT(Format), ##__VA_ARGS__); \
-	UE_LOG(UdSDKLog, Log, TEXT("[SUCCESS] %s"), *Msg); \
+	UE_LOG(LogTemp, Log, TEXT("[SUCCESS] %s"), *Msg); \
 	CLEAR_WARN_COLOR(); \
 	GEngine->AddOnScreenDebugMessage(-1, 100.f, FColor::White, Msg); \
 }
@@ -101,7 +100,7 @@ void Func##_Local(FString UploadId, int64  PartCount, int64 Size, int64 InTotal,
 { \
 	SET_WARN_COLOR(COLOR_GREEN); \
 	const FString Msg = FString::Printf(TEXT(Format), ##__VA_ARGS__); \
-	UE_LOG(UdSDKLog, Log, TEXT("[SUCCESS] %s"), *Msg); \
+	UE_LOG(LogTemp, Log, TEXT("[SUCCESS] %s"), *Msg); \
 	CLEAR_WARN_COLOR(); \
 }
 
@@ -109,7 +108,7 @@ void Func##_Local(FString UploadId, int64  PartCount, int64 Size, int64 InTotal,
 { \
 	SET_WARN_COLOR(COLOR_GREEN); \
 	const FString Msg = FString::Printf(TEXT(Format), ##__VA_ARGS__); \
-	UE_LOG(UdSDKLog, Log, TEXT("[SUCCESS] %s"), *Msg); \
+	UE_LOG(LogTemp, Log, TEXT("[SUCCESS] %s"), *Msg); \
 	CLEAR_WARN_COLOR(); \
 	GEngine->AddOnScreenDebugMessage(-1, 100.f, FColor::Green, Msg); \
 }
@@ -118,7 +117,7 @@ void Func##_Local(FString UploadId, int64  PartCount, int64 Size, int64 InTotal,
 { \
 	SET_WARN_COLOR(COLOR_YELLOW); \
 	const FString Msg = FString::Printf(TEXT(Format), ##__VA_ARGS__); \
-	UE_LOG(UdSDKLog, Warning, TEXT("[WARNING] %s"), *Msg); \
+	UE_LOG(LogTemp, Warning, TEXT("[WARNING] %s"), *Msg); \
 	CLEAR_WARN_COLOR(); \
 }
 
@@ -127,7 +126,7 @@ void Func##_Local(FString UploadId, int64  PartCount, int64 Size, int64 InTotal,
 	SET_WARN_COLOR(COLOR_YELLOW); \
 	const FString Msg = FString::Printf(TEXT(Format), ##__VA_ARGS__); \
 	const FString NewMsg = FString::Printf(TEXT("[WARNING] %s"), *Msg); \
-	UE_LOG(UdSDKLog, Warning, TEXT("%s"), *NewMsg); \
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *NewMsg); \
 	CLEAR_WARN_COLOR(); \
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, NewMsg); \
 }
@@ -136,7 +135,7 @@ void Func##_Local(FString UploadId, int64  PartCount, int64 Size, int64 InTotal,
 { \
 	SET_WARN_COLOR(COLOR_RED); \
 	const FString Msg = FString::Printf(TEXT(Format), ##__VA_ARGS__); \
-	UE_LOG(UdSDKLog, Error, TEXT("[ERROR] %s"), *Msg); \
+	UE_LOG(LogTemp, Error, TEXT("[ERROR] %s"), *Msg); \
 	CLEAR_WARN_COLOR(); \
 }
 
@@ -145,7 +144,7 @@ void Func##_Local(FString UploadId, int64  PartCount, int64 Size, int64 InTotal,
 	SET_WARN_COLOR(COLOR_RED); \
 	const FString Msg = FString::Printf(TEXT(Format), ##__VA_ARGS__); \
 	const FString NewMsg = FString::Printf(TEXT("[ERROR] %s"), *Msg); \
-	UE_LOG(UdSDKLog, Error, TEXT("%s"), *NewMsg); \
+	UE_LOG(LogTemp, Error, TEXT("%s"), *NewMsg); \
 	CLEAR_WARN_COLOR(); \
 	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, NewMsg); \
 }

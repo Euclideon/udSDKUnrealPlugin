@@ -23,6 +23,20 @@ struct udStreamerInfo
 };
 
 //!
+//! Initialises the UDS streamer
+//!
+//! @param memoryThresholdBytes Sets the threshold for how much memory the streaming system should *attempt* to stay below in bytes. Set as 0 to use the default amount of memory for the current platform.
+//! @warning If memoryThresholdBytes is non-zero (which will use the default amount of memory) the return code will be udE_CalledMoreThanOnce if the streamer has already been started
+//! @note If the streamer hasn't been initialised before loading a UDS or creating a udRenderContext it will be initialised during those using default values
+//!
+UDSDKDLL_API enum udError udStreamer_Init(uint64_t memoryThresholdBytes);
+
+//!
+//! Deinitialises the UDS streamer (reference counted). This must be called once for every call to udStreamer_Init regardless of return code of that function to decrease the reference count.
+//!
+UDSDKDLL_API enum udError udStreamer_Deinit();
+
+//!
 //! Updates the UDS streamer manually (used in conjuction with udRCF_ManualStreamerUpdate)
 //!
 //! @param pStatus A structure to write streaming information to; Use NULL if the information isn't required

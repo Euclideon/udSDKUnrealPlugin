@@ -129,6 +129,8 @@ extern "C" {
     enum udAttributeTypeInfo typeInfo; //!< This contains information about the type
     enum udAttributeBlendType blendType; //!< Which blend type this attribute is using
     char name[64]; //!< Name of the attibute
+    char prefix[16]; //!< Value prefix for display
+    char suffix[16]; //!< Value suffix for display
   };
 
   //!
@@ -155,7 +157,7 @@ extern "C" {
   UDSDKDLL_API enum udError udAttributeSet_Create(struct udAttributeSet *pAttributeSet, enum udStdAttributeContent content, uint32_t additionalCustomAttributes);
 
   //!
-  //! Free the memory created by a call to udAttributeSet_Generate
+  //! Free the memory created by a call to udAttributeSet_Create
   //!
   //! @param pAttributeSet The attribute set to free the resources of
   //! @return A udError value based on the result of the destruction of the attribute set.
@@ -181,6 +183,25 @@ extern "C" {
   //! @return A udError value based on the result of writing the offset to pOffset
   //!
   UDSDKDLL_API enum udError udAttributeSet_GetOffsetOfNamedAttribute(const struct udAttributeSet *pAttributeSet, const char *pName, uint32_t *pOffset);
+
+  //!
+  //! Gets the descriptor of a named attribute stored in a udAttributeSet
+  //!
+  //! @param pAttributeSet The attribute set to get the descriptor from
+  //! @param pName The name of the attribute
+  //! @param pDescriptor This pointer to be written to with the value of the descriptor if it is found
+  //! @return A udError value based on the result of writing the descriptor to pDescriptor
+  //!
+  UDSDKDLL_API enum udError udAttributeSet_GetDescriptorOfNamedAttribute(const struct udAttributeSet *pAttributeSet, const char *pName, struct udAttributeDescriptor *pDescriptor);
+
+  //!
+  //! Gets the descriptor of a standard attribute 
+  //!
+  //! @param attribute The standard attribute to return the descriptor of
+  //! @param pDescriptor This pointer to be written to with the value of the descriptor if it is found
+  //! @return A udError value based on the result of writing the descriptor to pDescriptor
+  //!
+  UDSDKDLL_API enum udError udAttribute_GetDescriptorOfStandardAttribute(const enum udStdAttribute attribute, struct udAttributeDescriptor *pDescriptor);
 
 #ifdef __cplusplus
 }

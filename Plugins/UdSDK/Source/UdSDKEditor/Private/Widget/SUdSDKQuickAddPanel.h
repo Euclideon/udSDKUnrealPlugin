@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Dialogs/CustomDialog.h"
+// #include "Dialogs/CustomDialog.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Views/STableRow.h"
 #include <string>
@@ -36,8 +36,6 @@ private:
   void AddItemToLevel(TSharedRef<QuickAddItem> item);
   void AddBlankPointCloudToLevel();
   void AddPointCloudToLevel(TSharedRef<QuickAddItem> item);
-  void AddPointOfInterestToLevel();
-  void AddPolygonToLevel();
 
   TArray<TSharedRef<QuickAddItem>> QuickAddItems;
   std::unordered_set<std::string> ItemsBeingAdded;

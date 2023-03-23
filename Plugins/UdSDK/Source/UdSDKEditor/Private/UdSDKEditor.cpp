@@ -7,7 +7,7 @@
 #include "SUdSDKAssetsPanel.h"
 #include "Misc/MessageDialog.h"
 #include "ToolMenus.h"
-#include "Settings/ObjectStorageSettings.h"
+#include "ObjectStorageSettings.h"
 #include "ObjectStorageSettings/ObjectStorageSettingsDetails.h"
 #include "ISettingsModule.h"
 #include "Widgets/Docking/SDockTab.h"
@@ -47,17 +47,6 @@ void FUdSDKEditorModule::StartupModule()
 		.SetIcon(FSlateIcon(FUdSDKEditorStyle::GetStyleSetName(), TEXT("UdSDK.MenuIcon")));
 
 
-	FGlobalTabmanager::Get()
-		->RegisterNomadTabSpawner(
-			TEXT("UdSDKAssets"),
-			FOnSpawnTab::CreateRaw(
-				this,
-				&FUdSDKEditorModule::SpawnUdSDKAssetBrowserTab))
-		.SetGroup(WorkspaceMenu::GetMenuStructure().GetLevelEditorCategory())
-		.SetDisplayName(FText::FromString(TEXT("UdSDK Assets")))
-		.SetTooltipText(FText::FromString(TEXT("UdSDK Assets")))
-		.SetIcon(FSlateIcon(FUdSDKEditorStyle::GetStyleSetName(), TEXT("UdSDK.MenuIcon")));
-
 	FLevelEditorModule* pLevelEditorModule = 
 		FModuleManager::GetModulePtr<FLevelEditorModule>(
 			FName(TEXT("LevelEditor")));
@@ -69,10 +58,6 @@ void FUdSDKEditorModule::StartupModule()
 				FTabId("PlacementBrowser"),
 				ELayoutExtensionPosition::After,
 				FTabManager::FTab(FName("UdSDK"), ETabState::OpenedTab));
-			extender.ExtendLayout(
-				FTabId("OutputLog"),
-				ELayoutExtensionPosition::Before,
-				FTabManager::FTab(FName("UdSDKAssets"), ETabState::ClosedTab));
 		});
 
 		PluginCommands->MapAction(
@@ -148,13 +133,6 @@ void FUdSDKEditorModule::RegisterMenus()
 TSharedRef<SDockTab> FUdSDKEditorModule::SpawnUdSDKTab(const FSpawnTabArgs& TabSpawnArgs)
 {
 	TSharedRef<SDockTab> SpawnedTab = SNew(SDockTab).TabRole(ETabRole::NomadTab)[SNew(SUdSDKMainPanel)];
-	return SpawnedTab;
-}
-
-TSharedRef<SDockTab> FUdSDKEditorModule::SpawnUdSDKAssetBrowserTab(const FSpawnTabArgs& TabSpawnArgs)
-{
-	TSharedRef<SDockTab> SpawnedTab =
-		SNew(SDockTab).TabRole(ETabRole::NomadTab)[SNew(SUdSDKAssetsPanel)];
 	return SpawnedTab;
 }
 

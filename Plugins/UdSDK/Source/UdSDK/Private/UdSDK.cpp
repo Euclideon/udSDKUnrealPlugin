@@ -1,24 +1,22 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "UdSDK.h"
+
+#include <udContext.h>
+
 #include "CoreMinimal.h"
-#include "UdSDKFunctionLibrary.h"
 
 #define LOCTEXT_NAMESPACE "FUdSDKModule"
 
+// Called when the module is loaded by the engine
 void FUdSDKModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
-	if (!GEngine->IsEditor())
-		UUdSDKFunctionLibrary::Login();
+	UE_LOG(LogTemp, Display, TEXT("UDSDK: StartupModule()"));
 }
 
 void FUdSDKModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
-	if (!GEngine->IsEditor())
-		UUdSDKFunctionLibrary::Exit();
+	UE_LOG(LogTemp, Display, TEXT("UDSDK: ShutdownModule()"));
 }
 
 #undef LOCTEXT_NAMESPACE

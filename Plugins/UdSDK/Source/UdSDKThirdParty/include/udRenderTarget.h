@@ -63,7 +63,7 @@ UDSDKDLL_API enum udError udRenderTarget_Destroy(struct udRenderTarget **ppRende
 //! @param pRenderTarget The render target to associate a target buffer with.
 //! @param pColorBuffer The color buffer, if null the buffer will not be rendered to anymore.
 //! @param colorClearValue The clear value to clear the color buffer with.
-//! @param pDepthBuffer The depth buffer, if null the buffer will not be rendered to anymore.
+//! @param pDepthBuffer The depth buffer, required
 //! @return A udError value based on the result of setting the targets.
 //! @note This internally calls udRenderTarget_SetTargetsWithPitch with both color and depth pitches set to 0.
 //!
@@ -75,7 +75,7 @@ UDSDKDLL_API enum udError udRenderTarget_SetTargets(struct udRenderTarget *pRend
 //! @param pRenderTarget The render target to associate a target buffer with.
 //! @param pColorBuffer The color buffer, if null the buffer will not be rendered to anymore.
 //! @param colorClearValue The clear value to clear the color buffer with.
-//! @param pDepthBuffer The depth buffer, if null the buffer will not be rendered to anymore.
+//! @param pDepthBuffer The depth buffer, required
 //! @param colorPitchInBytes The number of bytes that make up a row of the color buffer.
 //! @param depthPitchInBytes The number of bytes that make up a row of the depth buffer.
 //! @return A udError value based on the result of setting the targets.
@@ -101,6 +101,16 @@ UDSDKDLL_API enum udError udRenderTarget_GetMatrix(const struct udRenderTarget *
 //! @return A udError value based on the result of setting the matrix.
 //!
 UDSDKDLL_API enum udError udRenderTarget_SetMatrix(struct udRenderTarget *pRenderTarget, enum udRenderTargetMatrix matrixType, const double cameraMatrix[16]);
+
+//!
+//! Set the logarithmic depth near and far planes that will be used for logarithmic rendering.
+//! Note: These values are only used when the 'udRCF_LogarithmicDepth' rendering flag is set.
+//!
+//! @param pRenderTarget The render target to set the matrix to.
+//! @param nearPlane The value that the near plane will be set to.
+//! @param farPlane The value that the far plane will be set to.
+//!
+UDSDKDLL_API enum udError udRenderTarget_SetLogarithmicDepthPlanes(struct udRenderTarget *pRenderTarget, double nearPlane, double farPlane);
 
 #ifdef __cplusplus
 }

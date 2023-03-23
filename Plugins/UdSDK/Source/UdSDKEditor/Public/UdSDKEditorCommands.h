@@ -20,6 +20,5 @@ public:
 
 public:
 	TSharedPtr<FUICommandInfo> OpenMainPanel;
-	TSharedPtr<FUICommandInfo> AddFromAssets;
 	TSharedPtr<FUICommandInfo> SignOut;
 };

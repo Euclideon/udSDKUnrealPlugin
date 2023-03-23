@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ObjectStorageSettings/ObjectStorageSettingsDetails.h"
-#include "Settings/ObjectStorageSettings.h"
+#include "ObjectStorageSettings.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
 #include "DetailWidgetRow.h"
@@ -36,10 +36,6 @@ void FObjectStorageSettingsDetails::CustomizeDetails(IDetailLayoutBuilder& Detai
 				.ToolTipText(LOCTEXT("RefreshData_Tooltip", "Update data to the scene"))
 				.OnClicked_Lambda([this, Settings]()
 				{
-					if (Settings.IsValid())
-					{
-						Settings->RefreshData();
-					}
 					return(FReply::Handled());
 				})
 			]

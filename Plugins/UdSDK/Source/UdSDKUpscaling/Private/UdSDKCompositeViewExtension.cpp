@@ -1,5 +1,5 @@
 #include "UdSDKCompositeViewExtension.h"
-#include "UdSDKComposite.h"
+#include "UDSubsystem.h"
 #include "GlobalShader.h"
 #include "SceneView.h"
 #include "PixelShaderUtils.h"
@@ -17,7 +17,7 @@ static TAutoConsoleVariable<int32> CVarEnableUds(
 
 FUdSDKCompositeViewExtension::FUdSDKCompositeViewExtension(const FAutoRegister& AutoRegister) :
 	FSceneViewExtensionBase(AutoRegister)
-{
+{	
 
 }
 
@@ -29,8 +29,13 @@ void FUdSDKCompositeViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSc
 //PRAGMA_DISABLE_OPTIMIZATION
 void FUdSDKCompositeViewExtension::BeginRenderViewFamily(FSceneViewFamily& InViewFamily)
 {
-	if (!CUdSDKComposite::Get() ||
-		InViewFamily.Views.Num() == 0)
+	// TODO - It would be ideal if this function could correctly marshal the true depth buffer width/height down into the CaptureUDSImage call below
+	// I'm unsure of how to do that right now, so for now these values are being cached into a UDSDK engine singleton
+	// but this really should be refactored at a later date.
+
+	UUDSubsystem* MySubsystem = GEngine->GetEngineSubsystem<UUDSubsystem>();
+
+	if (!MySubsystem ||	InViewFamily.Views.Num() == 0)
 	{
 		return;
 	}
@@ -60,16 +65,13 @@ void FUdSDKCompositeViewExtension::BeginRenderViewFamily(FSceneViewFamily& InVie
 					EditorViewBitflag1 == (uint64)1 << ViewIndex1)
 				{
 					FUdsData* Data = new FUdsData();
-					if (CUdSDKComposite::Get())
-					{
-						CUdSDKComposite::Get()->CaptureUDSImage(*InView);
-						Data->UdColorTexture = CUdSDKComposite::Get()->GetColorTexture();
-						Data->UdDepthTexture = CUdSDKComposite::Get()->GetDepthTexture();
-					}
+					MySubsystem->CaptureUDSImage(*InView);
+					Data->UdColorTexture = MySubsystem->GetColorTexture();
+					Data->UdDepthTexture = MySubsystem->GetDepthTexture();
 
 					ViewData.Add(TSharedPtr<FUdsData>(Data));
 
-					if (CUdSDKComposite::Get()->IsValid())
+					if (MySubsystem->IsValid())
 						InViewFamily.SetSecondarySpatialUpscalerInterface(new FUdSDKCompositeUpscaler(EUdsMode::PostProcessingOnly, ViewData));
 				}
 				

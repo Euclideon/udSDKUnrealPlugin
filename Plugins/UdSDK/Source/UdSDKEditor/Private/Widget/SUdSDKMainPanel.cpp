@@ -10,7 +10,7 @@
 #include "Styling/SlateStyleRegistry.h"
 #include "Widgets/Input/SHyperlink.h"
 #include "Widgets/Layout/SScrollBox.h"
-#include "UdSDKFunctionLibrary.h"
+#include "UDSubsystem.h"
 
 void SUdSDKMainPanel::Construct(const FArguments& InArgs) {
   ChildSlot
@@ -29,16 +29,12 @@ void SUdSDKMainPanel::Tick(
 }
 
 static bool isSignedIn() {
-    return UUdSDKFunctionLibrary::IsLogin();
+    UUDSubsystem* MySubsystem = GEngine->GetEngineSubsystem<UUDSubsystem>();
+    return MySubsystem->IsLogin();
 }
 
 TSharedRef<SWidget> SUdSDKMainPanel::Toolbar() {
   TSharedRef<FUICommandList> commandList = MakeShared<FUICommandList>();
-
-  commandList->MapAction(
-      FUdSDKEditorCommands::Get().AddFromAssets,
-      FExecuteAction::CreateSP(this, &SUdSDKMainPanel::addFromAssets),
-      FCanExecuteAction::CreateStatic(isSignedIn));
 
   commandList->MapAction(
       FUdSDKEditorCommands::Get().SignOut,
@@ -46,9 +42,7 @@ TSharedRef<SWidget> SUdSDKMainPanel::Toolbar() {
       FCanExecuteAction::CreateStatic(isSignedIn));
 
   FToolBarBuilder builder(commandList, FMultiBoxCustomization::None);
- //
-    builder.AddToolBarButton(FUdSDKEditorCommands::Get().AddFromAssets);
-    builder.AddToolBarButton(FUdSDKEditorCommands::Get().SignOut);
+  builder.AddToolBarButton(FUdSDKEditorCommands::Get().SignOut);
 
   return builder.MakeWidget();
 }
@@ -94,8 +88,7 @@ void SUdSDKMainPanel::addFromAssets() {
   pTabManager->TryInvokeTab(FTabId(TEXT("UdSDKAssets")));
 }
 
-void SUdSDKMainPanel::signOut() { 
-    if(UUdSDKFunctionLibrary::IsLogin())
-        UUdSDKFunctionLibrary::Exit();
+void SUdSDKMainPanel::signOut() {
+    // Do nothing
 }
 
