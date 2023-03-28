@@ -82,50 +82,22 @@ Keep this key handy, as it is what we will paste into the Unreal Plugin.
 
 The Unlimited Detail for Unreal plugin can be acquired either directly from the Unreal Marketplace or from our GitHub releases page, both approaches are equivalent and are detailed below:
 
-## Install the Unreal Plugin – Unreal Marketplace
 
-1. Ensure the Epic Games Launcher is installed. 
-    - Navigate to: https://store.epicgames.com/en-US/download
-1. Install and run the Launcher, you will be met with the following UI:  
-    - ![image](./mdcontent/launcher_basic.png "UDS in Unreal")
-1. Navigate to the Epic Marketplace by clicking the “Marketplace” tab:
-    - ![image](./mdcontent/launcher_marketplace.png "UDS in Unreal")
-1. Locate the “Search Products” dialogue and search for “Unlimited Detail”:
-    - ![image](./mdcontent/launcher_search.png "UDS in Unreal")
-1. Install the plugin
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Open your project
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Navigate to plugins
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Enable the plugin
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Restart your Project
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
 
 ## Install the Unreal Plugin – Github Releases
 
+1. Navigate to https://my.github.url.to.the.release.of.the.plugin.com, and click Releases on the right:
+1. Download the latest release.
 1. Create a new Unreal project. Locate the folder, it should look something like this: 
     - ![image](./mdcontent/unreal_project.png "UDS in Unreal")
 1. Create a new folder alongside your .uproject file, and name it `Plugins` :
     - ![image](./mdcontent/unreal_pluginsFolder.png "UDS in Unreal")
-1. Keep this directory handy, but Nagivate to https://my.github.url.to.the.release.of.the.plugin.com
-1. Click “Releases” 
+1. Open `Plugins` and create a new folder called `UdSDK`
+1. Copy the contentse of the downloaded release from github into the `UdSDK` folder. The folder should resemble the following:
     - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Click “download” 
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Once downloaded, take the following files:
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. And place them within your projects “Plugins” directory.
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Pay close attention to the plugins folder structure:
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Once pasted into your project folder, launch your Unreal Project.
-
-unreal_pluginsFolder
 
 # Configuring the Plugin
-1. Copy your API key from your UD Cloud account, it should look something like this: 
+1. Copy your API key from your UD Cloud account, it resemble the following: 
 `eyJhcGlrZXlpZCI6IjAxMjM0NTY3OC0xMTExLTIyMjItMzMzMy00NDQ0NTU1NTY2NjYiLCJ1c2VyaWQiOiIwMTIzNDU2NzgtMTExMS0yMjIyLTMzMzMtNDQ0NDU1NTU2NjY2IiwidmVyc2lvbiI6IjEifQ==`
 1. Load your Unreal Project
 1. Once loaded, navigate into your Plugins Settings dialogue:
@@ -135,9 +107,6 @@ unreal_pluginsFolder
 1. Ensure that the `Server Path` section reads `https://udcloud.euclideon.com`
 1. Paste your API key into the API Key Dialogue
 1. Click `Login!`. You only ever need to click “Login” on the very first time you install the plugin (you may also restart if you prefer). The Unlimited Detail will now utilize your API key whenever you launch this project.
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. If your API key is ever invalid, it will display an error in the project settings like such:
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
 1. Close the project settings window. 
 
 Your Unlimited Detail plugin is now fully installed and configured and you can begin working with our large point cloud .UDS format.
@@ -203,3 +172,27 @@ Blueprint API examples:
 
 [DYNAMICALLY SPAWN ACTOR/COMPONNET]
 
+
+
+[REMOVE ME]:
+## Install the Unreal Plugin – Unreal Marketplace
+
+1. Ensure the Epic Games Launcher is installed. 
+    - Navigate to: https://store.epicgames.com/en-US/download
+1. Install and run the Launcher, you will be met with the following UI:  
+    - ![image](./mdcontent/launcher_basic.png "UDS in Unreal")
+1. Navigate to the Epic Marketplace by clicking the “Marketplace” tab:
+    - ![image](./mdcontent/launcher_marketplace.png "UDS in Unreal")
+1. Locate the “Search Products” dialogue and search for “Unlimited Detail”:
+    - ![image](./mdcontent/launcher_search.png "UDS in Unreal")
+1. Install the plugin
+    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
+1. Open your project
+    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
+1. Navigate to plugins
+    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
+1. Enable the plugin
+    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
+1. Restart your Project
+    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
+    
