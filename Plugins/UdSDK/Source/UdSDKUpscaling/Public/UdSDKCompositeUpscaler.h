@@ -27,18 +27,6 @@ public:
 	ISpatialUpscaler* Fork_GameThread(const class FSceneViewFamily& ViewFamily) const override;
 	FScreenPassTexture AddPasses(FRDGBuilder& GraphBuilder, const FViewInfo& View, const FInputs& PassInputs) const override;
 
-	//virtual void AddPasses(
-	//	FRDGBuilder& GraphBuilder,
-	//	const FViewInfo& View,
-	//	const FPassInputs& PassInputs,
-	//	FRDGTextureRef* OutSceneColorTexture,
-	//	FIntRect* OutSceneColorViewRect,
-	//	FRDGTextureRef* OutSceneColorHalfResTexture,
-	//	FIntRect* OutSceneColorHalfResViewRect) const override;
-
-	//virtual float GetMinUpsampleResolutionFraction() const override;
-	//virtual float GetMaxUpsampleResolutionFraction() const override;
-
 private:
 	template <class T>
 	T* RegisterSubpass()

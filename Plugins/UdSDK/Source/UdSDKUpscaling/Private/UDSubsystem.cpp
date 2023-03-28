@@ -7,13 +7,7 @@
 #include "UdSDKCompositeViewExtension.h"
 #include "UdSDKDefine.h"
 #include "udContext.h"
-
-template <typename ValueType>
-void ResizeArray(TArray<ValueType>& Array, int32 Size)
-{
-	Array.Empty(Size);
-	Array.AddUninitialized(Size);
-}
+#include "Misc/MessageDialog.h"
 
 uint32_t vcVoxelShader_Black(udPointCloud* /*pPointCloud*/, const udVoxelID* /*pVoxelID*/, const void* pUserData)
 {
@@ -39,9 +33,10 @@ void FuncMat2Array(double* array, const FMatrix& Mat)
 
 UUDSubsystem::UUDSubsystem()
 {
+	NextID = 1;
+
 	Width = 0;
 	Height = 0;
-	LoginFlag = false;
 	ViewExtension = nullptr;
 }
 
@@ -97,7 +92,7 @@ int UUDSubsystem::LoginFunction()
 	enum udError error = udE_Failure;
 
 	// Unsure what happens to login reqs
-	if (LoginFlag)
+	if (pContext)
 	{
 		UDSDK_WARNING_MSG("Have login!");
 		return error;
@@ -119,7 +114,8 @@ int UUDSubsystem::LoginFunction()
 	
 	{
 		FScopeLock ScopeLockInst(&DataMutex);
-		InstanceArray.Reset();
+		RenderInstanceHandles.Reset();
+		AssetsMap.Reset();
 	}
 
 	const FString ApplicationVersion = "0.0";
@@ -128,6 +124,8 @@ int UUDSubsystem::LoginFunction()
 	error = udContext_ConnectWithKey(&pContext, TCHAR_TO_UTF8(*ServerUrl), TCHAR_TO_UTF8(*ApplicationName), TCHAR_TO_UTF8(*ApplicationVersion), TCHAR_TO_UTF8(*APIKey));
 	if (error != udE_Success)
 	{
+		FString message = FString::Printf(TEXT("udContext_ConnectWithKey (Error: %s)"), GetError(error));
+		FMessageDialog::Debugf(FText::FromString(message));
 		UDSDK_ERROR_MSG("udContext_ConnectWithKey (Error: %s)", GetError(error));
 		return error;
 	}
@@ -148,16 +146,11 @@ int UUDSubsystem::LoginFunction()
 		UDSDK_WARNING_MSG("The ViewExtension object already exists");
 	}
 	
-	LoginFlag = true;
-
 	return error;
 }
 
-int UUDSubsystem::Exit()
+void UUDSubsystem::Exit()
 {
-	//FScopeLock ScopeLock(&CallMutex);
-	enum udError error = udE_Failure;
-
 	ViewExtension = nullptr;
 
 	ServerUrl = ""; // udcloud.com
@@ -166,64 +159,25 @@ int UUDSubsystem::Exit()
 	Width = 0;
 	Height = 0;
 
-	if (LoginFlag)
+	FScopeLock ScopeLock(&DataMutex);
+	for (auto inst : AssetsMap)
 	{
-		LoginFlag = false;
-		{
-			FScopeLock ScopeLock(&DataMutex);
-			for (auto inst : InstanceArray)
-			{
-				error = udPointCloud_Unload(&inst.pPointCloud);
-				if (error != udE_Success)
-				{
-					UDSDK_ERROR_MSG("udPointCloud_Unload error : %s", GetError(error));
-				}
-			}
-			InstanceArray.Reset();
-
-			AssetsMap.Reset();
-		}
-		
-
-		if (pRenderView)
-		{
-			error = udRenderTarget_Destroy(&pRenderView);
-			if (error != udE_Success)
-			{
-				UDSDK_ERROR_MSG("udRenderTarget_Destroy error : %s", GetError(error));
-			}
-			pRenderView = nullptr;
-		}
-
-		if (pRenderer)
-		{
-			error = udRenderContext_Destroy(&pRenderer);
-			if (error != udE_Success)
-			{
-				UDSDK_ERROR_MSG("udRenderContext_Destroy error : %s", GetError(error));
-			}
-			pRenderer = nullptr;
-		}
-
-		if (pContext)
-		{
-			error = udContext_Disconnect(&pContext, false);
-			if (error != udE_Success)
-			{
-				UDSDK_ERROR_MSG("udContext_Disconnect error : %s", GetError(error));
-			}
-			pContext = nullptr;
-		}
+		udPointCloud_Unload(&inst.Value.PointCloud);
 	}
-	
-	return error;
+
+	RenderInstanceHandles.Reset();
+	AssetsMap.Reset();
+
+	udRenderTarget_Destroy(&pRenderView);
+	udRenderContext_Destroy(&pRenderer);
+	udContext_Disconnect(&pContext, false);
 }
 
 FUDPointCloudHandle* UUDSubsystem::Load(FString URL)
 {
 	enum udError error = udE_Failure;
 
-	if (!LoginFlag)
+	if (!pContext)
 	{
 		UDSDK_ERROR_MSG("Not logged in!");
 		return nullptr;
@@ -231,15 +185,19 @@ FUDPointCloudHandle* UUDSubsystem::Load(FString URL)
 
 	{
 		FScopeLock ScopeLock(&DataMutex);
-		FUDPointCloudHandle* Asset = AssetsMap.Find(URL);
-		if (Asset)
+		FUDPointCloudHandle* AssetPtr = AssetsMap.Find(URL);
+		if (AssetPtr)
 		{
-			return Asset;
+			++AssetPtr->RefCount;
+			UE_LOG(LogTemp, Display, TEXT("UnlimitedDetail | Fetched [In Cache: %d] | %s"), AssetPtr->RefCount, *AssetPtr->URL, AssetPtr->RefCount);
+			return AssetPtr;
 		}
 	}
 
 	FUDPointCloudHandle Asset = {};
 	udPointCloudHeader header = {};
+
+	Asset.URL = URL;
 
 	error = udPointCloud_Load(pContext, &Asset.PointCloud, TCHAR_TO_UTF8(*URL), &header);
 	if (error != udE_Success)
@@ -256,42 +214,66 @@ FUDPointCloudHandle* UUDSubsystem::Load(FString URL)
 		Asset.VoxelShaderFunc = vcVoxelShader_Colour;
 	}
 
-	udDouble3 pivot = udDouble3::create(header.pivot[0], header.pivot[1], header.pivot[2]);
-
 	Asset.Pivot.X = header.pivot[0];
 	Asset.Pivot.Y = header.pivot[1];
 	Asset.Pivot.Z = header.pivot[2];
 
+	Asset.bIsLoaded = true;
+	Asset.RefCount = 1;
+
 	{
 		FScopeLock ScopeLock(&DataMutex);
-		AssetsMap.Add(URL, Asset);
-	}
 
-	return AssetsMap.Find(URL);
+		// Double check it doesn't already exist again
+		FUDPointCloudHandle *AssetPtr = AssetsMap.Find(URL);
+		if (AssetPtr)
+		{
+			++AssetPtr->RefCount;
+
+			udPointCloud_Unload(&Asset.PointCloud);
+
+			UE_LOG(LogTemp, Display, TEXT("UnlimitedDetail | Fetched [Cache Missed: %d] | %s"), AssetPtr->RefCount, *AssetPtr->URL);
+
+			return AssetPtr;
+		}
+		else
+		{
+			AssetsMap.Add(URL, Asset);
+
+			UE_LOG(LogTemp, Display, TEXT("UnlimitedDetail | Fetched [Added to cache: %d] | %s"), Asset.RefCount, *Asset.URL);
+			return AssetsMap.Find(URL);
+		}
+	}
 }
 
-void UUDSubsystem::Remove(FUDPointCloudHandle** UDPointCloudHandlePtr)
+void UUDSubsystem::Remove(FUDPointCloudHandle* PCI)
 {
 	FScopeLock ScopeLock(&DataMutex);
 
-	if (UDPointCloudHandlePtr == nullptr || *UDPointCloudHandlePtr == nullptr)
+	if (PCI == nullptr || PCI->RefCount <= 0)
 		return;
-
-	FUDPointCloudHandle* PCI = *UDPointCloudHandlePtr;
-	*UDPointCloudHandlePtr = nullptr;
-
-	enum udError error = udE_Success;
 
 	FUDPointCloudHandle* Asset = AssetsMap.Find(PCI->URL);
 
-	if (Asset)
+	if (Asset == PCI)
 	{
 		--Asset->RefCount;
 
-		if (Asset->RefCount <= 0)
+		UE_LOG(LogTemp, Display, TEXT("UnlimitedDetail | Releasing [Cached:%d] | %s"), Asset->RefCount, *Asset->URL);
+
+		if (Asset->RefCount == 0)
 		{
+			for (int i = RenderInstanceHandles.Num() - 1; i >= 0; --i)
+			{
+				if (RenderInstanceHandles[i].RenderInstance.pPointCloud == PCI->PointCloud)
+				{
+					RenderInstanceHandles.RemoveAtSwap(i);
+				}
+			}
+
+			FString key = PCI->URL;
 			udPointCloud_Unload(&PCI->PointCloud);
-			AssetsMap.Remove(PCI->URL);
+			AssetsMap.Remove(key);
 		}
 	}
 	else
@@ -308,38 +290,73 @@ bool UUDSubsystem::Find(FString URL)
 	return (Asset != nullptr);
 }
 
-bool UUDSubsystem::QueueInstance(FUDPointCloudHandle* PCI, const FMatrix& InMatrix, const FSceneView* View)
+
+int64_t UUDSubsystem::QueueInstance(FUDPointCloudHandle *PCI, const FMatrix &InMatrix, FSceneInterface *Scene)
 {
-	UE_LOG(LogTemp, Display, TEXT("Setting transform ..."));
-	
-	if (!PCI->PointCloud)
+	if (!PCI || !PCI->bIsLoaded || !PCI->PointCloud)
 	{
 		return false;
 	}
 
 	FScopeLock ScopeLock(&DataMutex);
 
-	udRenderInstance RenderInstance = {};
-	RenderInstance.pPointCloud = PCI->PointCloud;
-	RenderInstance.pVoxelShader = PCI->VoxelShaderFunc;
-	RenderInstance.pVoxelUserData = (void*)(View->Family);
+	FUDPointCloudInstanceHandle RenderInstance = {};
+	RenderInstance.id = (NextID++);
+	RenderInstance.Scene = Scene;
+
+	RenderInstance.RenderInstance.pPointCloud = PCI->PointCloud;
+	RenderInstance.RenderInstance.pVoxelShader = PCI->VoxelShaderFunc;
 
 	for (int i = 0; i < 4; ++i)
 	{
-		RenderInstance.matrix[0 + i * 4] = InMatrix.M[i][0];
-		RenderInstance.matrix[1 + i * 4] = InMatrix.M[i][1];
-		RenderInstance.matrix[2 + i * 4] = InMatrix.M[i][2];
-		RenderInstance.matrix[3 + i * 4] = InMatrix.M[i][3];
+		RenderInstance.RenderInstance.matrix[0 + i * 4] = InMatrix.M[i][0];
+		RenderInstance.RenderInstance.matrix[1 + i * 4] = InMatrix.M[i][1];
+		RenderInstance.RenderInstance.matrix[2 + i * 4] = InMatrix.M[i][2];
+		RenderInstance.RenderInstance.matrix[3 + i * 4] = InMatrix.M[i][3];
 	}
 
-	InstanceArray.Push(RenderInstance);
+	RenderInstanceHandles.Push(RenderInstance);
 
-	return true;
+	return RenderInstance.id;
 }
 
-void UUDSubsystem::ResetForNextViewport(const FSceneView& View)
+bool UUDSubsystem::RemoveInstance(int64_t id)
 {
-	//InstanceArray.Empty();
+	//TODO: Binary search this instead
+	for (int i = 0; i < RenderInstanceHandles.Num(); ++i)
+	{
+		if (RenderInstanceHandles[i].id != id)
+			continue;
+
+		RenderInstanceHandles.RemoveAt(i);
+		return true;
+	}
+
+	return false;
+}
+
+bool UUDSubsystem::UpdateInstance(int64_t id, const FMatrix &InMatrix)
+{
+	FScopeLock ScopeLock(&DataMutex);
+
+	//TODO: Binary search this instead
+	for (int i = 0; i < RenderInstanceHandles.Num(); ++i)
+	{
+		if (RenderInstanceHandles[i].id != id)
+			continue;
+
+		for (int j = 0; j < 4; ++j)
+		{
+			RenderInstanceHandles[i].RenderInstance.matrix[0 + j * 4] = InMatrix.M[j][0];
+			RenderInstanceHandles[i].RenderInstance.matrix[1 + j * 4] = InMatrix.M[j][1];
+			RenderInstanceHandles[i].RenderInstance.matrix[2 + j * 4] = InMatrix.M[j][2];
+			RenderInstanceHandles[i].RenderInstance.matrix[3 + j * 4] = InMatrix.M[j][3];
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
 // The main function for rendering out UD images
@@ -348,14 +365,14 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 	// prep an empty error
 	enum udError error = udE_Failure;
 	
-	if (!LoginFlag)
+	if (!pContext)
 	{
 		return udE_Failure;
 	}
 
 	{
 		FScopeLock ScopeLock(&DataMutex);
-		if (InstanceArray.Num() == 0)
+		if (RenderInstanceHandles.Num() == 0)
 		{
 			return udE_Failure;
 		}
@@ -394,7 +411,6 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 	FuncMat2Array(ViewArray, View.ViewMatrices.GetViewMatrix());
 
 	{
-		FScopeLock ScopeLockData(&BulkDataMutex);
 		FScopeLock ScopeLockInst(&DataMutex);
 
 		error = udRenderTarget_SetTargets(pRenderView, ColorBulkData.GetData(), 0xFF000000, DepthBulkData.GetData());
@@ -422,21 +438,36 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 		renderOptions.pFilter = nullptr;
 		renderOptions.pointMode = udRCPM_Rectangles;
 		
-		for (int i = 0; i < InstanceArray.Num(); ++i)
-		{
-			InstanceArray[i].skipRender = (InstanceArray[i].pVoxelUserData == View.Family ? 0 : 1);
+		TArray<udRenderInstance> RenderInstances;
 
-			if (InstanceArray[i].skipRender == 0)
+		for (int i = 0; i < RenderInstanceHandles.Num(); ++i)
+		{
+			if (RenderInstanceHandles[i].Scene == View.Family->Scene)
 			{
-				UDSDK_ERROR_MSG("udRenderContext_Render error : %s", GetError(error));
+				RenderInstances.Add(RenderInstanceHandles[i].RenderInstance);
 			}
 		}
 
-		error = udRenderContext_Render(pRenderer, pRenderView, InstanceArray.GetData(), InstanceArray.Num(), &renderOptions);
+		error = udRenderContext_Render(pRenderer, pRenderView, RenderInstances.GetData(), RenderInstances.Num(), &renderOptions);
 		if (error != udE_Success)
 		{
 			UDSDK_ERROR_MSG("udRenderContext_Render error : %s", GetError(error));
 			return error;
+		}
+
+		for (int i = 0; i < nHeight; ++i)
+		{
+			for (int j = 0; j < nWidth; ++j)
+			{
+				if (i != j)
+					continue;
+
+				ColorBulkData.GetData()[i * nWidth + j] = FColor::Red;
+				DepthBulkData.GetData()[i * nWidth + j] = 0.5f;
+
+				ColorBulkData.GetData()[i * nWidth + (nWidth - 1 - j)] = FColor::Blue;
+				DepthBulkData.GetData()[i * nWidth + (nWidth - 1 - j)] = 0.5f;
+			}
 		}
 
 		// TODO - Add picking back in
@@ -444,14 +475,12 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 		{
 		//	SetSelectedByModelIndex(picking.modelIndex, true);
 		}
-
-
 	}
 
 
 	ENQUEUE_RENDER_COMMAND(UpdateTextureData)(
 		[this](FRHICommandListImmediate& CommandList) {
-		FScopeLock ScopeLock(&BulkDataMutex);
+		FScopeLock ScopeLock(&DataMutex);
 		if (ColorTexture.IsValid() && ColorTexture->GetSizeX() == Width && ColorTexture->GetSizeY() == Height)
 		{
 			auto Region = FUpdateTextureRegion2D(0, 0, 0, 0, Width, Height);
@@ -514,7 +543,7 @@ int UUDSubsystem::RecreateUDView(int32 InWidth, int32 InHeight, float InFOV)
 	);
 
 	{
-		FScopeLock ScopeLock(&BulkDataMutex);
+		FScopeLock ScopeLock(&DataMutex);
 		ETextureCreateFlags TexCreateFlags = TexCreate_Dynamic; // Flags for .SetFlags()
 		{
 

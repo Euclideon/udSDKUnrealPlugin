@@ -33,27 +33,6 @@ FUdSDKCompositeUpscaler::FUdSDKCompositeUpscaler(EUdsMode InMode, TArray<TShared
 	}
 }
 
-//void FUdSDKCompositeUpscaler::AddPasses(FRDGBuilder& GraphBuilder, 
-//	const FViewInfo& View,
-//	const FPassInputs& PassInputs,
-//	FRDGTextureRef* OutSceneColorTexture,
-//	FIntRect* OutSceneColorViewRect, 
-//	FRDGTextureRef* OutSceneColorHalfResTexture,
-//	FIntRect* OutSceneColorHalfResViewRect) const
-//{
-//
-//}
-//
-//float FUdSDKCompositeUpscaler::GetMinUpsampleResolutionFraction() const
-//{
-//	return 0.0f;
-//}
-//
-//float FUdSDKCompositeUpscaler::GetMaxUpsampleResolutionFraction() const
-//{
-//	return 0.0f;
-//}
-
 ISpatialUpscaler* FUdSDKCompositeUpscaler::Fork_GameThread(const class FSceneViewFamily& ViewFamily) const
 {
 	// FSceneTextures::InitializeViewFamily(GraphBuilder, *(FViewFamilyInfo*)View.Family);

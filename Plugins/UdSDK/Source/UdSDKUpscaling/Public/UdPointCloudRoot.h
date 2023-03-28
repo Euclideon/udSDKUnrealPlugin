@@ -13,7 +13,6 @@ class UUdPointCloudRoot : public UPrimitiveComponent
 
 public:
 	UUdPointCloudRoot();
-	~UUdPointCloudRoot();
 
 	UFUNCTION(BlueprintGetter, Category = "UnlimitedDetail")
 	FString GetUrl() const { return Url; }
@@ -26,25 +25,20 @@ public:
 
 private:
 	void LoadPointCloud();
-	void ReloadPointCloud();
-	void DestroyPointCloud();
-	void LoginPointCloud();
+	void UnloadPointCloud();
 
 	UPROPERTY(EditAnywhere, BlueprintGetter = GetUrl, BlueprintSetter = SetUrl, Category = "UnlimitedDetail")
 	FString Url;
 
 	struct FUDPointCloudHandle* PointCloudHandle;
 
-	FDelegateHandle LoginDelegateHandle;
-	FDelegateHandle ExitDelegateHandle;
-
 protected:
 	/** Overridable native event for when play begins for this actor. */
 	virtual void BeginPlay() override;
-	
-	virtual void BeginDestroy() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void PostLoad() override;
+	
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void BeginDestroy() override;
 
 	//~ Begin UPrimitiveComponent Interface.
 	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;

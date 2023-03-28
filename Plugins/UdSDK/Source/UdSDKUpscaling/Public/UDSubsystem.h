@@ -37,6 +37,16 @@ public:
 	int RefCount;
 };
 
+USTRUCT()
+struct FUDPointCloudInstanceHandle
+{
+	GENERATED_BODY()
+
+	int64_t id;
+	const FSceneInterface* Scene;
+	udRenderInstance RenderInstance;
+};
+
 UCLASS()
 class UDSDKUPSCALING_API UUDSubsystem : public UEngineSubsystem
 {
@@ -50,23 +60,24 @@ public:
 	virtual void Deinitialize() override;
 
 	int LoginFunction();
-	int Exit();
+	void Exit();
 
 	FUDPointCloudHandle* Load(FString URL);
-	void Remove(FUDPointCloudHandle** PCI); // Sets *PCI to nullptr
+	void Remove(FUDPointCloudHandle* PCI);
 	bool Find(FString URL);
 
 	UFUNCTION(BlueprintCallable)
-	bool IsLogin() const { return LoginFlag; };
+	bool IsLogin() const { return (pContext != nullptr); };
 
 	FTexture2DRHIRef GetColorTexture()const { return ColorTexture; };
 	FTexture2DRHIRef GetDepthTexture()const { return DepthTexture; };
 
-	bool IsValid() const { return IsLogin() && GetColorTexture().IsValid() && GetDepthTexture().IsValid() && InstanceArray.Num() > 0; };
+	bool IsValid() const { return IsLogin() && GetColorTexture().IsValid() && GetDepthTexture().IsValid(); };
 
-	bool QueueInstance(FUDPointCloudHandle* PCI, const FMatrix& InMatrix, const FSceneView* View);
+	int64_t QueueInstance(FUDPointCloudHandle* PCI, const FMatrix& InMatrix, FSceneInterface* Scene);
+	bool RemoveInstance(int64_t id);
+	bool UpdateInstance(int64_t id, const FMatrix &InMatrix);
 
-	void ResetForNextViewport(const FSceneView& View);
 	int CaptureUDSImage(const FSceneView& View);
 
 protected:
@@ -84,13 +95,12 @@ private:
 	FTexture2DRHIRef ColorTexture;
 	FTexture2DRHIRef DepthTexture;
 
-	//bool InitFlag;
-	bool LoginFlag;
-
 	struct udContext* pContext = NULL;
 	struct udContextPartial* pContextPartial = NULL; // New 5.1 context partial for web based logins
 	struct udRenderContext* pRenderer = NULL;
 	struct udRenderTarget* pRenderView = NULL;
+
+	int64_t NextID;
 
 	double ViewArray[16] = {};
 	double ProjArray[16] = {};
@@ -103,11 +113,9 @@ private:
 	
 	FCriticalSection DataMutex;
 
-	TArray<udRenderInstance> InstanceArray;
-	
+	TArray<FUDPointCloudInstanceHandle> RenderInstanceHandles;
 	TMap<FString, FUDPointCloudHandle> AssetsMap;
 
-	FCriticalSection BulkDataMutex;
 	FUdSDKResourceBulkData<FColor> ColorBulkData;
 	FUdSDKResourceBulkData<float> DepthBulkData;
 
