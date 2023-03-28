@@ -1,6 +1,5 @@
 #pragma once
 #include "CoreMinimal.h"
-#include <chrono>
 #include "udContext.h"
 #include "udRenderContext.h"
 #include "udPointCloud.h"
@@ -18,6 +17,36 @@ DECLARE_MULTICAST_DELEGATE(FUdExitDelegate);
 
 class FUdSDKCompositeViewExtension;
 
+typedef uint32_t udVoxelShader(struct udPointCloud* pPointCloud, const struct udVoxelID* pVoxelID, const void* pVoxelUserData);
+
+USTRUCT(BlueprintType)
+struct FUDPointCloudHandle
+{
+	GENERATED_BODY()
+
+public:
+	FString URL;
+
+	bool bIsLoaded;
+
+	udPointCloud* PointCloud;
+	udVoxelShader* VoxelShaderFunc;
+
+	FVector Pivot;
+
+	int RefCount;
+};
+
+USTRUCT()
+struct FUDPointCloudInstanceHandle
+{
+	GENERATED_BODY()
+
+	int64_t id;
+	const FSceneInterface* Scene;
+	udRenderInstance RenderInstance;
+};
+
 UCLASS()
 class UDSDKUPSCALING_API UUDSubsystem : public UEngineSubsystem
 {
@@ -31,20 +60,23 @@ public:
 	virtual void Deinitialize() override;
 
 	int LoginFunction();
-	int Exit();
+	void Exit();
 
-	int Load(uint32 InUniqueID, TSharedPtr<FUdAsset> OutAssert);
-	int Remove(uint32 InUniqueID);
-	bool Find(uint32 InUniqueID);
-	int SetTransform(uint32 InUniqueID, const FMatrix& InMatrix);
+	FUDPointCloudHandle* Load(FString URL);
+	void Remove(FUDPointCloudHandle* PCI);
+	bool Find(FString URL);
 
 	UFUNCTION(BlueprintCallable)
-	bool IsLogin() const { return LoginFlag; };
+	bool IsLogin() const { return (pContext != nullptr); };
 
 	FTexture2DRHIRef GetColorTexture()const { return ColorTexture; };
 	FTexture2DRHIRef GetDepthTexture()const { return DepthTexture; };
 
-	bool IsValid() const { return IsLogin() && GetColorTexture().IsValid() && GetDepthTexture().IsValid() && InstanceArray.Num() > 0; };
+	bool IsValid() const { return IsLogin() && GetColorTexture().IsValid() && GetDepthTexture().IsValid(); };
+
+	int64_t QueueInstance(FUDPointCloudHandle* PCI, const FMatrix& InMatrix, FSceneInterface* Scene);
+	bool RemoveInstance(int64_t id);
+	bool UpdateInstance(int64_t id, const FMatrix &InMatrix);
 
 	int CaptureUDSImage(const FSceneView& View);
 
@@ -63,13 +95,12 @@ private:
 	FTexture2DRHIRef ColorTexture;
 	FTexture2DRHIRef DepthTexture;
 
-	//bool InitFlag;
-	bool LoginFlag;
-
 	struct udContext* pContext = NULL;
 	struct udContextPartial* pContextPartial = NULL; // New 5.1 context partial for web based logins
 	struct udRenderContext* pRenderer = NULL;
 	struct udRenderTarget* pRenderView = NULL;
+
+	int64_t NextID;
 
 	double ViewArray[16] = {};
 	double ProjArray[16] = {};
@@ -82,12 +113,10 @@ private:
 	
 	FCriticalSection DataMutex;
 
-	TArray<udRenderInstance> InstanceArray;
-	
-	TMap<uint32, TSharedPtr<FUdAsset>> AssetsMap;
+	TArray<FUDPointCloudInstanceHandle> RenderInstanceHandles;
+	TMap<FString, FUDPointCloudHandle> AssetsMap;
 
-	FCriticalSection BulkDataMutex;
-	FUdSDKResourceBulkData<FColor>ColorBulkData;
+	FUdSDKResourceBulkData<FColor> ColorBulkData;
 	FUdSDKResourceBulkData<float> DepthBulkData;
 
 	FMatrix ProjectionMatrix;

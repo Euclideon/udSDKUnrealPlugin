@@ -7,14 +7,6 @@
 #include "UdSDKCompositeUpscaler.h"
 #include "PostProcess/SceneRenderTargets.h"
 
-
-static TAutoConsoleVariable<int32> CVarEnableUds(
-	TEXT("r.Uds.Enabled"),
-	1,
-	TEXT("Uds Enable"),
-	ECVF_RenderThreadSafe);
-
-
 FUdSDKCompositeViewExtension::FUdSDKCompositeViewExtension(const FAutoRegister& AutoRegister) :
 	FSceneViewExtensionBase(AutoRegister)
 {	
@@ -22,11 +14,17 @@ FUdSDKCompositeViewExtension::FUdSDKCompositeViewExtension(const FAutoRegister& 
 }
 
 
-void FUdSDKCompositeViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
+void FUdSDKCompositeViewExtension::SetupViewFamily(FSceneViewFamily &InViewFamily)
 {
-
+	// Required to be implemented by abstract parent class
 }
-//PRAGMA_DISABLE_OPTIMIZATION
+
+void FUdSDKCompositeViewExtension::SetupView(FSceneViewFamily &InViewFamily, FSceneView &InView)
+{
+	// Required to be implemented by abstract parent class
+}
+
+
 void FUdSDKCompositeViewExtension::BeginRenderViewFamily(FSceneViewFamily& InViewFamily)
 {
 	// TODO - It would be ideal if this function could correctly marshal the true depth buffer width/height down into the CaptureUDSImage call below
@@ -40,57 +38,26 @@ void FUdSDKCompositeViewExtension::BeginRenderViewFamily(FSceneViewFamily& InVie
 		return;
 	}
 
-	if (InViewFamily.GetFeatureLevel() >= ERHIFeatureLevel::SM5 && CVarEnableUds.GetValueOnAnyThread() > 0)
+	if (InViewFamily.GetFeatureLevel() >= ERHIFeatureLevel::SM5)
 	{
-
 		TArray<TSharedPtr<FUdsData>> ViewData;
 
-		//for (int i = 0; i < InViewFamily.Views.Num(); i++)
+		for (int i = 0; i < InViewFamily.Views.Num(); i++)
 		{
-			//const FSceneView* InView = InViewFamily.Views[i];
+			const FSceneView* InView = InViewFamily.Views[i];
 
-
-			const FSceneView* InView = InViewFamily.Views[0];
 			if (ensure(InView))
 			{
-				uint32 ViewIndex0 = 0;
-				uint32 ViewIndex1 = 1;
-				uint64 EditorViewBitflag0 = (uint64)1 << ViewIndex0;
-				uint64 EditorViewBitflag1 = (uint64)1 << ViewIndex1;
-#if WITH_EDITOR
-				EditorViewBitflag0 = InView->SceneViewInitOptions.EditorViewBitflag;
-				EditorViewBitflag1 = InView->SceneViewInitOptions.EditorViewBitflag;
-#endif
-				if (EditorViewBitflag0 == (uint64)1 << ViewIndex0 ||
-					EditorViewBitflag1 == (uint64)1 << ViewIndex1)
-				{
-					FUdsData* Data = new FUdsData();
-					MySubsystem->CaptureUDSImage(*InView);
-					Data->UdColorTexture = MySubsystem->GetColorTexture();
-					Data->UdDepthTexture = MySubsystem->GetDepthTexture();
+				FUdsData* Data = new FUdsData();
+				MySubsystem->CaptureUDSImage(*InView);
+				Data->UdColorTexture = MySubsystem->GetColorTexture();
+				Data->UdDepthTexture = MySubsystem->GetDepthTexture();
 
-					ViewData.Add(TSharedPtr<FUdsData>(Data));
+				ViewData.Add(TSharedPtr<FUdsData>(Data));
 
-					if (MySubsystem->IsValid())
-						InViewFamily.SetSecondarySpatialUpscalerInterface(new FUdSDKCompositeUpscaler(EUdsMode::PostProcessingOnly, ViewData));
-				}
-				
+				if (MySubsystem->IsValid())
+					InViewFamily.SetSecondarySpatialUpscalerInterface(new FUdSDKCompositeUpscaler(EUdsMode::PostProcessingOnly, ViewData));
 			}
-	
 		}
-
-		
-		
-		
 	}
-}
-//PRAGMA_ENABLE_OPTIMIZATION
-void FUdSDKCompositeViewExtension::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
-{
-
-}
-
-void FUdSDKCompositeViewExtension::PrePostProcessPass_RenderThread(FRDGBuilder& GraphBuilder, const FSceneView& View, const FPostProcessingInputs& Inputs)
-{
-
 }

@@ -7,13 +7,7 @@
 #include "UdSDKCompositeViewExtension.h"
 #include "UdSDKDefine.h"
 #include "udContext.h"
-
-template <typename ValueType>
-void ResizeArray(TArray<ValueType>& Array, int32 Size)
-{
-	Array.Empty(Size);
-	Array.AddUninitialized(Size);
-}
+#include "Misc/MessageDialog.h"
 
 uint32_t vcVoxelShader_Black(udPointCloud* /*pPointCloud*/, const udVoxelID* /*pVoxelID*/, const void* pUserData)
 {
@@ -39,9 +33,10 @@ void FuncMat2Array(double* array, const FMatrix& Mat)
 
 UUDSubsystem::UUDSubsystem()
 {
+	NextID = 1;
+
 	Width = 0;
 	Height = 0;
-	LoginFlag = false;
 	ViewExtension = nullptr;
 }
 
@@ -97,7 +92,7 @@ int UUDSubsystem::LoginFunction()
 	enum udError error = udE_Failure;
 
 	// Unsure what happens to login reqs
-	if (LoginFlag)
+	if (pContext)
 	{
 		UDSDK_WARNING_MSG("Have login!");
 		return error;
@@ -119,7 +114,8 @@ int UUDSubsystem::LoginFunction()
 	
 	{
 		FScopeLock ScopeLockInst(&DataMutex);
-		InstanceArray.Reset();
+		RenderInstanceHandles.Reset();
+		AssetsMap.Reset();
 	}
 
 	const FString ApplicationVersion = "0.0";
@@ -128,6 +124,8 @@ int UUDSubsystem::LoginFunction()
 	error = udContext_ConnectWithKey(&pContext, TCHAR_TO_UTF8(*ServerUrl), TCHAR_TO_UTF8(*ApplicationName), TCHAR_TO_UTF8(*ApplicationVersion), TCHAR_TO_UTF8(*APIKey));
 	if (error != udE_Success)
 	{
+		FString message = FString::Printf(TEXT("udContext_ConnectWithKey (Error: %s)"), GetError(error));
+		FMessageDialog::Debugf(FText::FromString(message));
 		UDSDK_ERROR_MSG("udContext_ConnectWithKey (Error: %s)", GetError(error));
 		return error;
 	}
@@ -148,16 +146,11 @@ int UUDSubsystem::LoginFunction()
 		UDSDK_WARNING_MSG("The ViewExtension object already exists");
 	}
 	
-	LoginFlag = true;
-
 	return error;
 }
 
-int UUDSubsystem::Exit()
+void UUDSubsystem::Exit()
 {
-	//FScopeLock ScopeLock(&CallMutex);
-	enum udError error = udE_Failure;
-
 	ViewExtension = nullptr;
 
 	ServerUrl = ""; // udcloud.com
@@ -166,319 +159,236 @@ int UUDSubsystem::Exit()
 	Width = 0;
 	Height = 0;
 
-	if (LoginFlag)
+	FScopeLock ScopeLock(&DataMutex);
+	for (auto inst : AssetsMap)
 	{
-		LoginFlag = false;
-		{
-			FScopeLock ScopeLock(&DataMutex);
-			for (auto inst : InstanceArray)
-			{
-				error = udPointCloud_Unload(&inst.pPointCloud);
-				if (error != udE_Success)
-				{
-					UDSDK_ERROR_MSG("udPointCloud_Unload error : %s", GetError(error));
-				}
-			}
-			InstanceArray.Reset();
-
-			AssetsMap.Reset();
-		}
-		
-
-		if (pRenderView)
-		{
-			error = udRenderTarget_Destroy(&pRenderView);
-			if (error != udE_Success)
-			{
-				UDSDK_ERROR_MSG("udRenderTarget_Destroy error : %s", GetError(error));
-			}
-			pRenderView = nullptr;
-		}
-
-		if (pRenderer)
-		{
-			error = udRenderContext_Destroy(&pRenderer);
-			if (error != udE_Success)
-			{
-				UDSDK_ERROR_MSG("udRenderContext_Destroy error : %s", GetError(error));
-			}
-			pRenderer = nullptr;
-		}
-
-		if (pContext)
-		{
-			error = udContext_Disconnect(&pContext, false);
-			if (error != udE_Success)
-			{
-				UDSDK_ERROR_MSG("udContext_Disconnect error : %s", GetError(error));
-			}
-			pContext = nullptr;
-		}
+		udPointCloud_Unload(&inst.Value.PointCloud);
 	}
-	
-	return error;
+
+	RenderInstanceHandles.Reset();
+	AssetsMap.Reset();
+
+	udRenderTarget_Destroy(&pRenderView);
+	udRenderContext_Destroy(&pRenderer);
+	udContext_Disconnect(&pContext, false);
 }
 
-int UUDSubsystem::Load(uint32 InUniqueID, TSharedPtr<FUdAsset> OutAssert)
+FUDPointCloudHandle* UUDSubsystem::Load(FString URL)
 {
 	enum udError error = udE_Failure;
 
-	if (!LoginFlag)
+	if (!pContext)
 	{
 		UDSDK_ERROR_MSG("Not logged in!");
-		return error;
+		return nullptr;
 	}
 
 	{
 		FScopeLock ScopeLock(&DataMutex);
-		if (AssetsMap.Contains(InUniqueID))
+		FUDPointCloudHandle* AssetPtr = AssetsMap.Find(URL);
+		if (AssetPtr)
 		{
-			UDSDK_ERROR_MSG("1:AUdPointCloud creating udPointCloud instance already exists!");
-			return error;
+			++AssetPtr->RefCount;
+			UE_LOG(LogTemp, Display, TEXT("UnlimitedDetail | Fetched [In Cache: %d] | %s"), AssetPtr->RefCount, *AssetPtr->URL, AssetPtr->RefCount);
+			return AssetPtr;
 		}
 	}
 
-	FString folder = OutAssert->folder;
-	FString uri = OutAssert->url;
+	FUDPointCloudHandle Asset = {};
+	udPointCloudHeader header = {};
 
-	if (uri.IsEmpty())
-	{
-		UDSDK_ERROR_MSG("Url is Empty!");
-		return error;
-	}
+	Asset.URL = URL;
 
-	struct udPointCloudHeader header;
-	memset(&header, 0, sizeof(header));
-
-	struct udPointCloud* pModel = NULL;
-
-	error = udPointCloud_Load(pContext, &pModel, TCHAR_TO_UTF8(*uri), &header);
+	error = udPointCloud_Load(pContext, &Asset.PointCloud, TCHAR_TO_UTF8(*URL), &header);
 	if (error != udE_Success)
 	{
-		UDSDK_ERROR_MSG("udPointCloud_Load error : %s %s", GetError(error), *uri);
-		return error;
+		UDSDK_ERROR_MSG("udPointCloud_Load error : %s %s", GetError(error), *URL);
+		return nullptr;
 	}
 
-	udDouble3 pivot = udDouble3::create(header.pivot[0], header.pivot[1], header.pivot[2]);
+	Asset.VoxelShaderFunc = vcVoxelShader_Black;
 
-	OutAssert->pivot.X = header.pivot[0];
-	OutAssert->pivot.Y = header.pivot[1];
-	OutAssert->pivot.Z = header.pivot[2];
-
-	udRenderInstance inst;
-	memset(&inst, 0, sizeof(udRenderInstance));
-	inst.pPointCloud = pModel;
-	memcpy(inst.matrix, header.storedMatrix, sizeof(header.storedMatrix));
-	inst.pVoxelShader = vcVoxelShader_Black;
-	inst.pVoxelUserData = (void*)OutAssert.Get();
-
-	OutAssert->pPointCloud = pModel;
-
-	uint32_t attributeOffset;
+	uint32_t attributeOffset = 0;
 	if (udAttributeSet_GetOffsetOfStandardAttribute(&header.attributes, udSA_ARGB, &attributeOffset) == udE_Success)
 	{
-		inst.pVoxelShader = vcVoxelShader_Colour;
+		Asset.VoxelShaderFunc = vcVoxelShader_Colour;
 	}
+
+	Asset.Pivot.X = header.pivot[0];
+	Asset.Pivot.Y = header.pivot[1];
+	Asset.Pivot.Z = header.pivot[2];
+
+	Asset.bIsLoaded = true;
+	Asset.RefCount = 1;
 
 	{
 		FScopeLock ScopeLock(&DataMutex);
-		if (AssetsMap.Contains(InUniqueID))
+
+		// Double check it doesn't already exist again
+		FUDPointCloudHandle *AssetPtr = AssetsMap.Find(URL);
+		if (AssetPtr)
 		{
-			UDSDK_ERROR_MSG("2:AUdPointCloud creating udPointCloud instance already exists!");
+			++AssetPtr->RefCount;
 
-			error = udPointCloud_Unload(&inst.pPointCloud);
-			if (error != udE_Success)
-			{
-				UDSDK_ERROR_MSG("Load->udPointCloud_Unload error : %s", GetError(error));
-			}
+			udPointCloud_Unload(&Asset.PointCloud);
 
-			return error;
+			UE_LOG(LogTemp, Display, TEXT("UnlimitedDetail | Fetched [Cache Missed: %d] | %s"), AssetPtr->RefCount, *AssetPtr->URL);
+
+			return AssetPtr;
 		}
+		else
+		{
+			AssetsMap.Add(URL, Asset);
 
-		InstanceArray.Push(inst);
-		AssetsMap.Add(InUniqueID, OutAssert);
+			UE_LOG(LogTemp, Display, TEXT("UnlimitedDetail | Fetched [Added to cache: %d] | %s"), Asset.RefCount, *Asset.URL);
+			return AssetsMap.Find(URL);
+		}
 	}
-
-	return error;
 }
 
-int UUDSubsystem::Remove(uint32 InUniqueID)
+void UUDSubsystem::Remove(FUDPointCloudHandle* PCI)
 {
 	FScopeLock ScopeLock(&DataMutex);
-	enum udError error = udE_Success;
-	void* pPointCloud = nullptr;
-	if (TSharedPtr<FUdAsset> Asset = AssetsMap.FindRef(InUniqueID))
+
+	if (PCI == nullptr || PCI->RefCount <= 0)
+		return;
+
+	FUDPointCloudHandle* Asset = AssetsMap.Find(PCI->URL);
+
+	if (Asset == PCI)
 	{
-		if (Asset->pPointCloud)
+		--Asset->RefCount;
+
+		UE_LOG(LogTemp, Display, TEXT("UnlimitedDetail | Releasing [Cached:%d] | %s"), Asset->RefCount, *Asset->URL);
+
+		if (Asset->RefCount == 0)
 		{
-			pPointCloud = Asset->pPointCloud;
-		}
-		AssetsMap.Remove(InUniqueID);
-	}
-	if (pPointCloud)
-	{
-		uint32 Index = 0;
-		for (auto inst : InstanceArray)
-		{
-			if (inst.pPointCloud == pPointCloud)
+			for (int i = RenderInstanceHandles.Num() - 1; i >= 0; --i)
 			{
-				error = udPointCloud_Unload(&inst.pPointCloud);
-				if (error != udE_Success)
+				if (RenderInstanceHandles[i].RenderInstance.pPointCloud == PCI->PointCloud)
 				{
-					UDSDK_ERROR_MSG("udPointCloud_Unload error : %s", GetError(error));
+					RenderInstanceHandles.RemoveAtSwap(i);
 				}
-				break;
 			}
-			Index++;
+
+			FString key = PCI->URL;
+			udPointCloud_Unload(&PCI->PointCloud);
+			AssetsMap.Remove(key);
 		}
-		InstanceArray.RemoveAt(Index);
 	}
-	return error;
+	else
+	{
+		// No idea how it got here
+	}
 }
 
-bool UUDSubsystem::Find(uint32 InUniqueID)
+bool UUDSubsystem::Find(FString URL)
 {
 	FScopeLock ScopeLock(&DataMutex);
-	if (TSharedPtr<FUdAsset> Asset = AssetsMap.FindRef(InUniqueID))
+	FUDPointCloudHandle* Asset = AssetsMap.Find(URL);
+
+	return (Asset != nullptr);
+}
+
+
+int64_t UUDSubsystem::QueueInstance(FUDPointCloudHandle *PCI, const FMatrix &InMatrix, FSceneInterface *Scene)
+{
+	if (!PCI || !PCI->bIsLoaded || !PCI->PointCloud)
 	{
+		return false;
+	}
+
+	FScopeLock ScopeLock(&DataMutex);
+
+	FUDPointCloudInstanceHandle RenderInstance = {};
+	RenderInstance.id = (NextID++);
+	RenderInstance.Scene = Scene;
+
+	RenderInstance.RenderInstance.pPointCloud = PCI->PointCloud;
+	RenderInstance.RenderInstance.pVoxelShader = PCI->VoxelShaderFunc;
+
+	for (int i = 0; i < 4; ++i)
+	{
+		RenderInstance.RenderInstance.matrix[0 + i * 4] = InMatrix.M[i][0];
+		RenderInstance.RenderInstance.matrix[1 + i * 4] = InMatrix.M[i][1];
+		RenderInstance.RenderInstance.matrix[2 + i * 4] = InMatrix.M[i][2];
+		RenderInstance.RenderInstance.matrix[3 + i * 4] = InMatrix.M[i][3];
+	}
+
+	RenderInstanceHandles.Push(RenderInstance);
+
+	return RenderInstance.id;
+}
+
+bool UUDSubsystem::RemoveInstance(int64_t id)
+{
+	//TODO: Binary search this instead
+	for (int i = 0; i < RenderInstanceHandles.Num(); ++i)
+	{
+		if (RenderInstanceHandles[i].id != id)
+			continue;
+
+		RenderInstanceHandles.RemoveAt(i);
 		return true;
 	}
+
 	return false;
 }
 
-int UUDSubsystem::SetTransform(uint32 InUniqueID, const FMatrix& InMatrix)
+bool UUDSubsystem::UpdateInstance(int64_t id, const FMatrix &InMatrix)
 {
-	if (!IsLogin())
-		return -1;
-
-	// TODO
-	// BUG - Potentially throws here if you change scenes at all? OR While streaming UDS?
-	
-	UE_LOG(LogTemp, Display, TEXT("Setting transform ..."));
-	
 	FScopeLock ScopeLock(&DataMutex);
-	enum udError error = udE_Success;
-	void* pPointCloud = nullptr;
-	if (TSharedPtr<FUdAsset> Asset = AssetsMap.FindRef(InUniqueID))
+
+	//TODO: Binary search this instead
+	for (int i = 0; i < RenderInstanceHandles.Num(); ++i)
 	{
-		if (Asset->pPointCloud)
-		{
-			pPointCloud = Asset->pPointCloud;
-		}
-		if (pPointCloud)
-		{
-			for (auto& inst : InstanceArray)
-			{
-				if (inst.pPointCloud == pPointCloud)
-				{
-					//FTransform t;
-					//t.SetLocation(InTransform.GetLocation());
-					//t.SetScale3D(InTransform.GetScale3D() * Asset->scale_xyz);
-					//t.SetRotation(InTransform.GetRotation());
-					//FuncMat2Array(inst.matrix, t.ToMatrixWithScale());
+		if (RenderInstanceHandles[i].id != id)
+			continue;
 
-					for (int i = 0; i < 4; ++i)
-					{
-						inst.matrix[0 + i * 4] = InMatrix.M[i][0];
-						inst.matrix[1 + i * 4] = InMatrix.M[i][1];
-						inst.matrix[2 + i * 4] = InMatrix.M[i][2];
-						inst.matrix[3 + i * 4] = InMatrix.M[i][3];
-					}
-					
-					//UDSDK_SCREENDE_DEBUG_MSG("SetTransform::Location : %d : %s", InUniqueID, *InTransform.GetLocation().ToString());
-					//inst.matrix[12] = InTransform.GetLocation().X;
-					//inst.matrix[13] = InTransform.GetLocation().Y;
-					//inst.matrix[14] = InTransform.GetLocation().Z;
-
-					//udDouble3 ud_position;
-					//udDouble3 ud_scale;
-					//udDouble4x4 storedMatrix;
-					//udDouble3 pivot = udDouble3::create(Asset->pivot.X, Asset->pivot.Y, Asset->pivot.Z);
-					//if (1)
-					//{
-					//	ud_position = udDouble3::create(InTransform.GetLocation().X, InTransform.GetLocation().Y, InTransform.GetLocation().Z);
-					//
-					//	ud_scale = udDouble3::create(InTransform.GetScale3D().X * Asset->scale_xyz.X,
-					//		InTransform.GetScale3D().Y * Asset->scale_xyz.Y, 
-					//		InTransform.GetScale3D().Z * Asset->scale_xyz.Z);
-					//
-					//	FVector Euler = InTransform.GetRotation().Euler();
-					//	udDouble3 euler = udDouble3::create(Euler.X, Euler.Y, Euler.Z);
-					//	storedMatrix = udDouble4x4::translation(pivot) *
-					//		udDouble4x4::rotationYPR(UD_DEG2RAD(euler), ud_position) *
-					//		udDouble4x4::scaleNonUniform(ud_scale) *
-					//		udDouble4x4::translation(-pivot);
-					//	memcpy(inst.matrix, storedMatrix.a, sizeof(double) * 16);
-					//}
-					
-					break;
-				}
-			}
+		for (int j = 0; j < 4; ++j)
+		{
+			RenderInstanceHandles[i].RenderInstance.matrix[0 + j * 4] = InMatrix.M[j][0];
+			RenderInstanceHandles[i].RenderInstance.matrix[1 + j * 4] = InMatrix.M[j][1];
+			RenderInstanceHandles[i].RenderInstance.matrix[2 + j * 4] = InMatrix.M[j][2];
+			RenderInstanceHandles[i].RenderInstance.matrix[3 + j * 4] = InMatrix.M[j][3];
 		}
+
+		return true;
 	}
-	
-	return error;
+
+	return false;
 }
 
 // The main function for rendering out UD images
 int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 {
-	// TODO - If Correct width/height can be marshaled into this function, we may not require the EngineSubsystem below
-	// possible refactor here later ...
-	// UUdSDKSubsystem* udSingletonSubSystem = GEngine->GetEngineSubsystem<UUdSDKSubsystem>();
-
 	// prep an empty error
 	enum udError error = udE_Failure;
 	
-	if (!LoginFlag)
+	if (!pContext)
 	{
-		return error;
+		return udE_Failure;
 	}
 
 	{
 		FScopeLock ScopeLock(&DataMutex);
-		if (InstanceArray.Num() == 0)
+		if (RenderInstanceHandles.Num() == 0)
 		{
-			return error;
+			return udE_Failure;
 		}
 	}
 
-	
-	
 	// These values are incorrect, but are at least visually plausable.
 	// If we can however get our singleton correctly, we should use the more accurate values contained within that
 	// auto vartest = View.UnconstrainedViewRect.Width();
 	int32 nWidth = View.UnconstrainedViewRect.Width();
 	int32 nHeight = View.UnconstrainedViewRect.Height();
 	
-	// UE_LOG(LogTemp, Display, TEXT("%s: Unscaled Width: %d, Unscaled Height: %d"), TEXT(__FUNCTION__), View.UnscaledViewRect.Width(), View.UnscaledViewRect.Height());
-	
-	// Subsystem is valid, we can get better values here
-	// We need to ensure the values are reasonable beacuse they can begin with junk values
-	/*
-	if (udSingletonSubSystem != nullptr) // Better way to check this?
-	{
-		UE_LOG(LogTemp, Display, TEXT("%s: Subsystem Width: %d, Height: %d."), TEXT(__FUNCTION__), udSingletonSubSystem->Width(), udSingletonSubSystem->Height());
-		
-		// Get the width
-		if (udSingletonSubSystem->Width() > 0 && udSingletonSubSystem->Width() < 2048)
-		{
-			//nWidth = udSingletonSubSystem->Width();
-		}
-		
-		// Get the height
-		if (udSingletonSubSystem->Height() > 0 && udSingletonSubSystem->Height() < 2048)
-		{
-			///nHeight = udSingletonSubSystem->Height();
-		}
-	}
-	*/
-
 	// Return early if we have really invalid values?
 	if (nWidth <= 0 || nHeight <= 0)
 	{
 		UDSDK_ERROR_MSG("Error, width or height = 0 : %s", GetError(error));
-		return error;
+		return udE_Failure;
 	}
 
 	// TODO - This needs to be handled better.
@@ -487,12 +397,10 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 	{
 		check(false);
 		UDSDK_ERROR_MSG("Error, width or height too big : %s", GetError(error));
-		return error;
+		return udE_Failure;
 	}
 
-	
 	error = (udError)RecreateUDView(nWidth, nHeight, View.FOV);
-	
 	if (error != udE_Success)
 	{
 		UDSDK_ERROR_MSG("RecreateUDView error : %s", GetError(error));
@@ -503,7 +411,6 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 	FuncMat2Array(ViewArray, View.ViewMatrices.GetViewMatrix());
 
 	{
-		FScopeLock ScopeLockData(&BulkDataMutex);
 		FScopeLock ScopeLockInst(&DataMutex);
 
 		error = udRenderTarget_SetTargets(pRenderView, ColorBulkData.GetData(), 0xFF000000, DepthBulkData.GetData());
@@ -531,11 +438,36 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 		renderOptions.pFilter = nullptr;
 		renderOptions.pointMode = udRCPM_Rectangles;
 		
-		error = udRenderContext_Render(pRenderer, pRenderView, InstanceArray.GetData(), InstanceArray.Num(), &renderOptions);
+		TArray<udRenderInstance> RenderInstances;
+
+		for (int i = 0; i < RenderInstanceHandles.Num(); ++i)
+		{
+			if (RenderInstanceHandles[i].Scene == View.Family->Scene)
+			{
+				RenderInstances.Add(RenderInstanceHandles[i].RenderInstance);
+			}
+		}
+
+		error = udRenderContext_Render(pRenderer, pRenderView, RenderInstances.GetData(), RenderInstances.Num(), &renderOptions);
 		if (error != udE_Success)
 		{
 			UDSDK_ERROR_MSG("udRenderContext_Render error : %s", GetError(error));
 			return error;
+		}
+
+		for (int i = 0; i < nHeight; ++i)
+		{
+			for (int j = 0; j < nWidth; ++j)
+			{
+				if (i != j)
+					continue;
+
+				ColorBulkData.GetData()[i * nWidth + j] = FColor::Red;
+				DepthBulkData.GetData()[i * nWidth + j] = 0.5f;
+
+				ColorBulkData.GetData()[i * nWidth + (nWidth - 1 - j)] = FColor::Blue;
+				DepthBulkData.GetData()[i * nWidth + (nWidth - 1 - j)] = 0.5f;
+			}
 		}
 
 		// TODO - Add picking back in
@@ -543,14 +475,12 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 		{
 		//	SetSelectedByModelIndex(picking.modelIndex, true);
 		}
-
-
 	}
 
 
 	ENQUEUE_RENDER_COMMAND(UpdateTextureData)(
 		[this](FRHICommandListImmediate& CommandList) {
-		FScopeLock ScopeLock(&BulkDataMutex);
+		FScopeLock ScopeLock(&DataMutex);
 		if (ColorTexture.IsValid() && ColorTexture->GetSizeX() == Width && ColorTexture->GetSizeY() == Height)
 		{
 			auto Region = FUpdateTextureRegion2D(0, 0, 0, 0, Width, Height);
@@ -613,7 +543,7 @@ int UUDSubsystem::RecreateUDView(int32 InWidth, int32 InHeight, float InFOV)
 	);
 
 	{
-		FScopeLock ScopeLock(&BulkDataMutex);
+		FScopeLock ScopeLock(&DataMutex);
 		ETextureCreateFlags TexCreateFlags = TexCreate_Dynamic; // Flags for .SetFlags()
 		{
 
