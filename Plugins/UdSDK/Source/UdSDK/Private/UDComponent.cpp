@@ -1,7 +1,6 @@
-#include "UdPointCloudRoot.h"
+#include "UDComponent.h"
 #include "Engine/World.h"
-#include "UdSDKMacro.h"
-#include "UdSDKDefine.h"
+#include "UDDefine.h"
 #include "UDSubsystem.h"
 
 /** Represents a UArrowComponent to the scene manager. */
@@ -14,7 +13,7 @@ public:
 		return reinterpret_cast<size_t>(&UniquePointer);
 	}
 
-	FPointCloudSceneProxy(UUdPointCloudRoot* Component) : FPrimitiveSceneProxy(Component)
+	FPointCloudSceneProxy(UUDComponent* Component) : FPrimitiveSceneProxy(Component)
 	{
 		myRoot = Component;
 		bWillEverBeLit = false;
@@ -114,19 +113,19 @@ public:
 	}
 
 private:
-	UUdPointCloudRoot* myRoot = nullptr;
+	UUDComponent* myRoot = nullptr;
 	int64_t instance; //TODO: Find we need multiple of these
 };
 
 
-UUdPointCloudRoot::UUdPointCloudRoot()
+UUDComponent::UUDComponent()
 {
 	// Intentionally blank
 	PointCloudHandle = nullptr;
 	Url = "";
 }
 
-void UUdPointCloudRoot::SetUrl(FString InUrl)
+void UUDComponent::SetUrl(FString InUrl)
 {
 	if (InUrl != this->Url)
 	{
@@ -136,13 +135,13 @@ void UUdPointCloudRoot::SetUrl(FString InUrl)
 	}
 }
 
-void UUdPointCloudRoot::RefreshPointCloud()
+void UUDComponent::RefreshPointCloud()
 {
 	UnloadPointCloud();
 	LoadPointCloud();
 }
 
-void UUdPointCloudRoot::LoadPointCloud()
+void UUDComponent::LoadPointCloud()
 {
 	if (PointCloudHandle)
 		return;
@@ -161,7 +160,7 @@ void UUdPointCloudRoot::LoadPointCloud()
 	 UE_LOG(LogTemp, Display, TEXT("UnlimitedDetail | Component %s | Load PCI | %p | %s"), *GetName(), PointCloudHandle, *PointCloudHandle->URL);
 }
 
-void UUdPointCloudRoot::UnloadPointCloud()
+void UUDComponent::UnloadPointCloud()
 {
 	if (!PointCloudHandle)
 		return;
@@ -174,14 +173,14 @@ void UUdPointCloudRoot::UnloadPointCloud()
 	PointCloudHandle = nullptr;
 }
 
-void UUdPointCloudRoot::BeginPlay()
+void UUDComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
 	LoadPointCloud();
 }
 
-void UUdPointCloudRoot::BeginDestroy()
+void UUDComponent::BeginDestroy()
 {
 	if (PointCloudHandle)
 		UnloadPointCloud();
@@ -189,7 +188,7 @@ void UUdPointCloudRoot::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-void UUdPointCloudRoot::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void UUDComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (PointCloudHandle)
 		UnloadPointCloud();
@@ -197,20 +196,20 @@ void UUdPointCloudRoot::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void UUdPointCloudRoot::PostLoad()
+void UUDComponent::PostLoad()
 {
 	Super::PostLoad();
 
 	LoadPointCloud();
 }
 
-FPrimitiveSceneProxy* UUdPointCloudRoot::CreateSceneProxy()
+FPrimitiveSceneProxy* UUDComponent::CreateSceneProxy()
 {
 	return new FPointCloudSceneProxy(this);
 }
 
 #if WITH_EDITOR
-void UUdPointCloudRoot::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UUDComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (!PropertyChangedEvent.Property)
@@ -220,7 +219,7 @@ void UUdPointCloudRoot::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 
 	FName PropName = PropertyChangedEvent.Property->GetFName();
 	FString PropNameAsString = PropertyChangedEvent.Property->GetName();
-	if (PropName == GET_MEMBER_NAME_CHECKED(UUdPointCloudRoot, Url))
+	if (PropName == GET_MEMBER_NAME_CHECKED(UUDComponent, Url))
 	{
 		UnloadPointCloud();
 		LoadPointCloud();

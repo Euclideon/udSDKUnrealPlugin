@@ -2,17 +2,17 @@
 
 #include "Components/SceneComponent.h"
 #include "CoreMinimal.h"
-#include "UdPointCloudRoot.generated.h"
+#include "UDComponent.generated.h"
 
 UCLASS(Blueprintable, BlueprintType, ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class UUdPointCloudRoot : public UPrimitiveComponent
+class UUDComponent : public UPrimitiveComponent
 {
 	GENERATED_BODY()
 
 	friend class FPointCloudSceneProxy;
 
 public:
-	UUdPointCloudRoot();
+	UUDComponent();
 
 	UFUNCTION(BlueprintGetter, Category = "UnlimitedDetail")
 	FString GetUrl() const { return Url; }

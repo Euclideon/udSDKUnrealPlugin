@@ -2,10 +2,10 @@
 
 #include "SceneViewExtension.h"
 
-class FUdSDKCompositeViewExtension final : public FSceneViewExtensionBase
+class FUDSceneViewExtension final : public FSceneViewExtensionBase
 {
 public:
-	FUdSDKCompositeViewExtension(const FAutoRegister& AutoRegister);
+	FUDSceneViewExtension(const FAutoRegister& AutoRegister);
 
 	void SetupViewFamily(FSceneViewFamily &InViewFamily) override;
 	void SetupView(FSceneViewFamily &InViewFamily, FSceneView &InView) override;

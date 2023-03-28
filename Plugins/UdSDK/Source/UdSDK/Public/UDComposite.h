@@ -16,10 +16,10 @@ enum class EUdsMode
 };
 
 //class FUdSDKCompositeUpscaler final : public ITemporalUpscaler
-class FUdSDKCompositeUpscaler final : public ISpatialUpscaler
+class FUDComposite final : public ISpatialUpscaler
 {
 public:
-	FUdSDKCompositeUpscaler(EUdsMode InMode, TArray<TSharedPtr<FUdsData>> InViewData);
+	FUDComposite(EUdsMode InMode, TArray<TSharedPtr<FUdsData>> InViewData);
 
 	// ISpatialUpscaler interface
 	const TCHAR* GetDebugName() const override { return TEXT("FUdSDKCompositeUpscaler"); }

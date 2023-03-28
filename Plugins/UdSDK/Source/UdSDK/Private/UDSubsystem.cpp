@@ -4,15 +4,13 @@
 #include "Slate/SceneViewport.h"
 #include "Engine/GameViewportClient.h"
 #include "UDSettings.h"
-#include "UdSDKCompositeViewExtension.h"
-#include "UdSDKDefine.h"
+#include "UDSceneViewExtension.h"
+#include "UDDefine.h"
 #include "udContext.h"
 #include "Misc/MessageDialog.h"
 
 uint32_t vcVoxelShader_Black(udPointCloud* /*pPointCloud*/, const udVoxelID* /*pVoxelID*/, const void* pUserData)
 {
-	FUdAsset* pData = (FUdAsset*)pUserData;
-
 	return 0x00000000;
 }
 
@@ -93,7 +91,7 @@ int UUDSubsystem::LoginFunction()
 	// Unsure what happens to login reqs
 	if (pContext)
 	{
-		UDSDK_WARNING_MSG("Have login!");
+		UE_LOG(LogTemp, Warning, TEXT("UnlimitedDetail | Have login!"));
 		return error;
 	}
 
@@ -103,11 +101,7 @@ int UUDSubsystem::LoginFunction()
 	
 	if (error != udE_Success) // Should fail basically due to user error only
 	{
-		UDSDK_ERROR_MSG("Initialization failed!");
-		UE_LOG(LogTemp, Warning, TEXT("Auth values after failing initialization: "));
-		UE_LOG(LogTemp, Warning, TEXT("Server: %s"), *ServerUrl);
-		
-		UE_LOG(LogTemp, Warning, TEXT("Current State of Connect Attempt: %d "), error);
+		UE_LOG(LogTemp, Error, TEXT("UnlimitedDetail | Initialization failed!"));
 		return error;
 	}
 	
@@ -131,24 +125,24 @@ int UUDSubsystem::LoginFunction()
 	{
 		FString message = FString::Printf(TEXT("udContext_ConnectWithKey (Error: %s)"), GetError(error));
 		FMessageDialog::Debugf(FText::FromString(message));
-		UDSDK_ERROR_MSG("udContext_ConnectWithKey (Error: %s)", GetError(error));
+		UE_LOG(LogTemp, Error, TEXT("UnlimitedDetail | udContext_ConnectWithKey (Error: %s)"), GetError(error));
 		return error;
 	}
 
 	error = udRenderContext_Create(pContext, &pRenderer);
 	if (error != udE_Success)
 	{
-		UDSDK_ERROR_MSG("udRenderContext_Create (Error: %s)", GetError(error));
+		UE_LOG(LogTemp, Error, TEXT("UnlimitedDetail | udRenderContext_Create (Error: %s)"), GetError(error));
 		return error;
 	}
 
 	if (!ViewExtension)
 	{
-		ViewExtension = FSceneViewExtensions::NewExtension<FUdSDKCompositeViewExtension>();
+		ViewExtension = FSceneViewExtensions::NewExtension<FUDSceneViewExtension>();
 	}
 	else
 	{
-		UDSDK_WARNING_MSG("The ViewExtension object already exists");
+		UE_LOG(LogTemp, Warning, TEXT("UnlimitedDetail | The ViewExtension object already exists"));
 	}
 	
 	return error;
@@ -184,7 +178,7 @@ FUDPointCloudHandle* UUDSubsystem::Load(FString URL)
 
 	if (!pContext) // Check again
 	{
-		UDSDK_ERROR_MSG("Not logged in!");
+		UE_LOG(LogTemp, Error, TEXT("UnlimitedDetail | Not logged in!"));
 		return nullptr;
 	}
 
@@ -207,7 +201,7 @@ FUDPointCloudHandle* UUDSubsystem::Load(FString URL)
 	error = udPointCloud_Load(pContext, &Asset.PointCloud, TCHAR_TO_UTF8(*URL), &header);
 	if (error != udE_Success)
 	{
-		UDSDK_ERROR_MSG("udPointCloud_Load error : %s %s", GetError(error), *URL);
+		UE_LOG(LogTemp, Error, TEXT("UnlimitedDetail | udPointCloud_Load error : %s %s"), GetError(error), *URL);
 		return nullptr;
 	}
 
@@ -392,7 +386,7 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 	// Return early if we have really invalid values?
 	if (nWidth <= 0 || nHeight <= 0)
 	{
-		UDSDK_ERROR_MSG("Error, width or height = 0 : %s", GetError(error));
+		UE_LOG(LogTemp, Error, TEXT("UnlimitedDetail | Error, width or height = 0 : %s"), GetError(error));
 		return udE_Failure;
 	}
 
@@ -401,14 +395,14 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 	if (nWidth >= 8192 || nHeight >= 8192)
 	{
 		check(false);
-		UDSDK_ERROR_MSG("Error, width or height too big : %s", GetError(error));
+		UE_LOG(LogTemp, Error, TEXT("UnlimitedDetail | Error, width or height too big : %s"), GetError(error));
 		return udE_Failure;
 	}
 
 	error = (udError)RecreateUDView(nWidth, nHeight, View.FOV);
 	if (error != udE_Success)
 	{
-		UDSDK_ERROR_MSG("RecreateUDView error : %s", GetError(error));
+		UE_LOG(LogTemp, Error, TEXT("UnlimitedDetail | RecreateUDView error : %s"), GetError(error));
 		return error;
 	}
 
@@ -421,7 +415,7 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 		error = udRenderTarget_SetTargets(pRenderView, ColorBulkData.GetData(), 0xFF000000, DepthBulkData.GetData());
 		if (error != udE_Success)
 		{
-			UDSDK_ERROR_MSG("udRenderTarget_SetTargets error : %s", GetError(error));
+			UE_LOG(LogTemp, Error, TEXT("UnlimitedDetail | udRenderTarget_SetTargets error : %s"), GetError(error));
 			return error;
 		}
 
@@ -430,7 +424,7 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 		
 		if (error != udE_Success)
 		{
-			UDSDK_ERROR_MSG("udRenderTarget_SetMatrix error : %s", GetError(error));
+			UE_LOG(LogTemp, Error, TEXT("UnlimitedDetail | udRenderTarget_SetMatrix error : %s"), GetError(error));
 			return error;
 		}
 
@@ -456,7 +450,7 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 		error = udRenderContext_Render(pRenderer, pRenderView, RenderInstances.GetData(), RenderInstances.Num(), &renderOptions);
 		if (error != udE_Success)
 		{
-			UDSDK_ERROR_MSG("udRenderContext_Render error : %s", GetError(error));
+			UE_LOG(LogTemp, Error, TEXT("UnlimitedDetail | udRenderContext_Render error : %s"), GetError(error));
 			return error;
 		}
 
@@ -599,7 +593,7 @@ int UUDSubsystem::RecreateUDView(int32 InWidth, int32 InHeight, float InFOV)
 		error = udRenderTarget_Destroy(&pRenderView);
 		if (error != udE_Success)
 		{
-			UDSDK_ERROR_MSG("udRenderTarget_Destroy error : %s", GetError(error));
+			UE_LOG(LogTemp, Error, TEXT("UnlimitedDetail | udRenderTarget_Destroy error : %s"), GetError(error));
 			return error;
 		}
 		pRenderView = nullptr;
@@ -610,7 +604,7 @@ int UUDSubsystem::RecreateUDView(int32 InWidth, int32 InHeight, float InFOV)
 	
 	if (error != udE_Success)
 	{
-		UDSDK_ERROR_MSG("udRenderTarget_Create error : %s", GetError(error));
+		UE_LOG(LogTemp, Error, TEXT("UnlimitedDetail | udRenderTarget_Create error : %s"), GetError(error));
 		return error;
 	}
 	return error;
