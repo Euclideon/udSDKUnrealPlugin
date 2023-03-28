@@ -3,7 +3,7 @@
 #include "UdSDKEditor.h"
 #include "Misc/MessageDialog.h"
 #include "ToolMenus.h"
-#include "ObjectStorageSettings.h"
+#include "UDSettings.h"
 #include "ObjectStorageSettingsDetails.h"
 #include "ISettingsModule.h"
 #include "Widgets/Docking/SDockTab.h"
@@ -29,7 +29,7 @@ void FUdSDKEditorModule::StartupModule()
 		SettingsModule->RegisterSettings("Project", "Plugins", "udSDK / Unlimited Detail",
 			LOCTEXT("udSDKInformation", "Unlimited Detail (udSDK)"),
 			LOCTEXT("udSDKInformationTip", "Settings for the Unlimited Detail Plugin"),
-			GetMutableDefault<UObjectStorageSettings>());
+			GetMutableDefault<UUDSettings>());
 	}
 
 	//FPropertyEditorModule& PropertyModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");

@@ -3,7 +3,7 @@
 #include "ImageUtils.h"
 #include "Slate/SceneViewport.h"
 #include "Engine/GameViewportClient.h"
-#include "ObjectStorageSettings.h"
+#include "UDSettings.h"
 #include "UdSDKCompositeViewExtension.h"
 #include "UdSDKDefine.h"
 #include "udContext.h"
@@ -64,16 +64,16 @@ int UUDSubsystem::Init()
 {
 	enum udError error = udE_Success;
 
-	if (const UObjectStorageSettings* Settings = GetDefault<UObjectStorageSettings>())
+	if (const UUDSettings* Settings = GetDefault<UUDSettings>())
 	{
 		ServerUrl = Settings->ServerPath.ToString();
-		APIKey = Settings->Password.ToString();
+		APIKey = Settings->APIKey.ToString();
 		if (ServerUrl.IsEmpty() || APIKey.IsEmpty())
 			error = udE_Failure;
 	}
 	else
 	{
-		ServerUrl = "";
+		ServerUrl = "udcloud.com";
 		APIKey = "";
 		error = udE_Failure;
 	}
@@ -85,8 +85,7 @@ int UUDSubsystem::Init()
 int UUDSubsystem::LoginFunction()
 {
 	// Logging startup values at login
-	UE_LOG(LogTemp, Display, TEXT("Auth values at start of Login() function"));
-	UE_LOG(LogTemp, Display, TEXT("Server: %s"), *ServerUrl);
+	UE_LOG(LogTemp, Display, TEXT("UnlimitedDetail | Connecting to Server: '%s'"), *ServerUrl);
 
 	// Get an error ready and default to failure
 	enum udError error = udE_Failure;
@@ -116,6 +115,12 @@ int UUDSubsystem::LoginFunction()
 		FScopeLock ScopeLockInst(&DataMutex);
 		RenderInstanceHandles.Reset();
 		AssetsMap.Reset();
+	}
+
+	if (ServerUrl.IsEmpty() || APIKey.IsEmpty())
+	{
+		FMessageDialog::Debugf(FText::FromString("Unlimited Detail settings are invalid please ensure server and APIKey are correct in the project settings and restart the application."));
+		return udE_Failure;
 	}
 
 	const FString ApplicationVersion = "0.0";
@@ -177,7 +182,7 @@ FUDPointCloudHandle* UUDSubsystem::Load(FString URL)
 {
 	enum udError error = udE_Failure;
 
-	if (!pContext)
+	if (!pContext) // Check again
 	{
 		UDSDK_ERROR_MSG("Not logged in!");
 		return nullptr;

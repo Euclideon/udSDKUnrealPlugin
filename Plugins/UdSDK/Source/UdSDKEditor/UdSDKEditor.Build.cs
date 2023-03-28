@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class UdSDKEditor : ModuleRules
+public class udSDKEditor : ModuleRules
 {
-	public UdSDKEditor(ReadOnlyTargetRules Target) : base(Target)
+	public udSDKEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
@@ -17,9 +17,7 @@ public class UdSDKEditor : ModuleRules
 		PrivateIncludePaths.AddRange(
 			new string[]
 			{
-				"UdSDKEditor/Private",
-				"UdSDKEditor/Private/Widget",
-				//"UdSDKEditor/Private/Settings",
+				"udSDKEditor/Private",
 			});
 			
 		
@@ -29,7 +27,7 @@ public class UdSDKEditor : ModuleRules
 				"Core",
 				// ... add other public dependencies that you statically link with here ...
 			}
-			);
+		);
 			
 		
 		PrivateDependencyModuleNames.AddRange(
@@ -48,15 +46,14 @@ public class UdSDKEditor : ModuleRules
 				"SlateCore",
 				"PropertyEditor",
 				"InputCore",
-				"UdSDKUpscaling",
+				"udSDK",
 				"AssetTools",
-				//"ContentBrowser",
 				"Settings",
 				//"PropertyEditor",
 				//"AssetRegistry"
 				// ... add private dependencies that you statically link with here ...	
 			}
-			);
+		);
 		
 		
 		DynamicallyLoadedModuleNames.AddRange(
