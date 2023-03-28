@@ -113,7 +113,7 @@ Your Unlimited Detail plugin is now fully installed and configured and you can b
 
 ## Rendering Unlimited Detail Pointcloud within Unreal Engine
 Inorder to render Point Cloud assets within Unreal Engine, you must add an Unlimited Detail component to an actor you create. 
-For demonstrations sake, we will do this via blueprints (additionally a C++ example will follow below):
+For demonstrations sake, we will do this via blueprints (a c++ example will be provided in the near future):
 
 1. Create a new blueprint actor within your project
     - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
@@ -153,46 +153,13 @@ Additionally, the above can also be achieved via C++ by creating a base c++ acto
 
 Additional examples:
 When combining the power of Unlimited Detail with the unreal engine, we’re able to make up for shortfalls inherent to pointcloud, for example:
+
 [SHADOW CASTING VIA PROXY HULL]
 [PHYSICS COLLISION WITH UDS ASSETS VIA PROXY HULL]
 [ANIMATING EXAMPLE OF UDS ASSETS]
 
-Blueprint API examples:
-[LOGING IN]
-[LOGING OUT]
+# Blueprint API
+Currently the Blueprint API is under development and will be expanded in the near future.
 
-[GETTING UDS URLS? FROM UR ACCOUNT?]
-[GETTING UDS META DATA?]
-
-[SETTING COMPONENT URL]
-
-[FORCE COMPONENT RELOAD]
-
-[DESTROY COMPONENT]
-
-[DYNAMICALLY SPAWN ACTOR/COMPONNET]
-
-
-
-[REMOVE ME]:
-## Install the Unreal Plugin – Unreal Marketplace
-
-1. Ensure the Epic Games Launcher is installed. 
-    - Navigate to: https://store.epicgames.com/en-US/download
-1. Install and run the Launcher, you will be met with the following UI:  
-    - ![image](./mdcontent/launcher_basic.png "UDS in Unreal")
-1. Navigate to the Epic Marketplace by clicking the “Marketplace” tab:
-    - ![image](./mdcontent/launcher_marketplace.png "UDS in Unreal")
-1. Locate the “Search Products” dialogue and search for “Unlimited Detail”:
-    - ![image](./mdcontent/launcher_search.png "UDS in Unreal")
-1. Install the plugin
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Open your project
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Navigate to plugins
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Enable the plugin
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Restart your Project
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-    
+## Blueprint examples:
+Space kept intentionally blank.
