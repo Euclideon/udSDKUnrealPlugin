@@ -454,21 +454,6 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 			return error;
 		}
 
-		for (int i = 0; i < nHeight; ++i)
-		{
-			for (int j = 0; j < nWidth; ++j)
-			{
-				if (i != j)
-					continue;
-
-				ColorBulkData.GetData()[i * nWidth + j] = FColor::Red;
-				DepthBulkData.GetData()[i * nWidth + j] = 0.5f;
-
-				ColorBulkData.GetData()[i * nWidth + (nWidth - 1 - j)] = FColor::Blue;
-				DepthBulkData.GetData()[i * nWidth + (nWidth - 1 - j)] = 0.5f;
-			}
-		}
-
 		// TODO - Add picking back in
 		if (picking.hit)
 		{
@@ -478,35 +463,23 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 
 
 	ENQUEUE_RENDER_COMMAND(UpdateTextureData)(
-		[this](FRHICommandListImmediate& CommandList) {
-		FScopeLock ScopeLock(&DataMutex);
-		if (ColorTexture.IsValid() && ColorTexture->GetSizeX() == Width && ColorTexture->GetSizeY() == Height)
+		[this](FRHICommandListImmediate& CommandList)
 		{
-			auto Region = FUpdateTextureRegion2D(0, 0, 0, 0, Width, Height);
-			RHIUpdateTexture2D(ColorTexture.GetReference(), 0, Region, ColorBulkData.GetTypeSize() * Region.Width, (uint8*)ColorBulkData.GetData());
+			FScopeLock ScopeLock(&DataMutex);
 
-			//uint32 Stride = 0;
-			//void* TextureMemory = GDynamicRHI->LockTexture2D_RenderThread(CommandList, CoefColorTexture.GetReference(), 0, RLM_WriteOnly, Stride, false);
-			//if (TextureMemory)
-			//{
-			//	FMemory::Memcpy(TextureMemory, ColorBulkData.GetData(), srceen_width * srceen_height * ColorBulkData.GetTypeSize());
-			//	GDynamicRHI->UnlockTexture2D_RenderThread(CommandList, CoefColorTexture.GetReference(), 0, true);
-			//}
-		}
-		if (DepthTexture.IsValid() && DepthTexture->GetSizeX() == Width && DepthTexture->GetSizeY() == Height)
-		{
-			auto Region = FUpdateTextureRegion2D(0, 0, 0, 0, Width, Height); // check this maybe?
-			RHIUpdateTexture2D(DepthTexture.GetReference(), 0, Region, DepthBulkData.GetTypeSize() * Region.Width, (uint8*)DepthBulkData.GetData());
+			if (ColorTexture.IsValid() && ColorTexture->GetSizeX() == Width && ColorTexture->GetSizeY() == Height)
+			{
+				auto Region = FUpdateTextureRegion2D(0, 0, 0, 0, Width, Height);
+				RHIUpdateTexture2D(ColorTexture.GetReference(), 0, Region, ColorBulkData.GetTypeSize() * Region.Width, (uint8*)ColorBulkData.GetData());
+			}
 
-			//uint32 Stride = 0;
-			//void* TextureMemory = GDynamicRHI->LockTexture2D_RenderThread(CommandList, CoefDepthTexture.GetReference(), 0, RLM_WriteOnly, Stride, false);
-			//if (TextureMemory)
-			//{
-			//	FMemory::Memcpy(TextureMemory, DepthBulkData.GetData(), srceen_width * srceen_height * DepthBulkData.GetTypeSize());
-			//	GDynamicRHI->UnlockTexture2D_RenderThread(CommandList, CoefDepthTexture.GetReference(), 0, true);
-			//}
+			if (DepthTexture.IsValid() && DepthTexture->GetSizeX() == Width && DepthTexture->GetSizeY() == Height)
+			{
+				auto Region = FUpdateTextureRegion2D(0, 0, 0, 0, Width, Height); // check this maybe?
+				RHIUpdateTexture2D(DepthTexture.GetReference(), 0, Region, DepthBulkData.GetTypeSize() * Region.Width, (uint8*)DepthBulkData.GetData());
+			}
 		}
-	});
+	);
 	return error;
 }
 
