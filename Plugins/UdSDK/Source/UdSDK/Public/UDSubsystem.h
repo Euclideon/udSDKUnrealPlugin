@@ -62,13 +62,13 @@ public:
 	void Remove(FUDPointCloudHandle* PCI);
 	bool Find(FString URL);
 
-	UFUNCTION(BlueprintCallable)
-	bool IsLogin() const { return (pContext != nullptr); };
+	UFUNCTION(BlueprintCallable, Category = "UnlimitedDetail")
+	bool HasSession() const { return (pContext != nullptr); };
 
 	FTexture2DRHIRef GetColorTexture()const { return ColorTexture; };
 	FTexture2DRHIRef GetDepthTexture()const { return DepthTexture; };
 
-	bool IsValid() const { return IsLogin() && GetColorTexture().IsValid() && GetDepthTexture().IsValid(); };
+	bool IsValid() const { return HasSession() && GetColorTexture().IsValid() && GetDepthTexture().IsValid(); };
 
 	int64_t QueueInstance(FUDPointCloudHandle* PCI, const FMatrix& InMatrix, FSceneInterface* Scene);
 	bool RemoveInstance(int64_t id);
@@ -76,18 +76,14 @@ public:
 
 	int CaptureUDSImage(const FSceneView& View);
 
-protected:
-	UPROPERTY(BlueprintReadOnly)
-	FString ServerUrl;
-
-	UPROPERTY(BlueprintReadOnly)
-	FString APIKey;
-
 private:
+
 	int Init();
 	int RecreateUDView(int InWidth, int InHeight, float InFOV);
 
-private:
+	FString ServerUrl;
+	FString APIKey;
+
 	FTexture2DRHIRef ColorTexture;
 	FTexture2DRHIRef DepthTexture;
 

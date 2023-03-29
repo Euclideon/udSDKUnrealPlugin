@@ -40,8 +40,7 @@ UUDSubsystem::UUDSubsystem()
 
 UUDSubsystem::~UUDSubsystem()
 {
-	//TODO: Cleanup properly
-	if (IsLogin())
+	if (HasSession())
 		Exit();
 }
 
@@ -89,7 +88,7 @@ int UUDSubsystem::LoginFunction()
 	enum udError error = udE_Failure;
 
 	// Unsure what happens to login reqs
-	if (pContext)
+	if (HasSession())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UnlimitedDetail | Have login!"));
 		return error;
@@ -176,7 +175,7 @@ FUDPointCloudHandle* UUDSubsystem::Load(FString URL)
 {
 	enum udError error = udE_Failure;
 
-	if (!pContext) // Check again
+	if (!HasSession()) // Check again
 	{
 		UE_LOG(LogTemp, Error, TEXT("UnlimitedDetail | Not logged in!"));
 		return nullptr;
@@ -364,7 +363,7 @@ int UUDSubsystem::CaptureUDSImage(const FSceneView& View)
 	// prep an empty error
 	enum udError error = udE_Failure;
 	
-	if (!pContext)
+	if (!HasSession())
 	{
 		return udE_Failure;
 	}
@@ -578,8 +577,8 @@ int UUDSubsystem::RecreateUDView(int32 InWidth, int32 InHeight, float InFOV)
 	if (error != udE_Success)
 	{
 		UE_LOG(LogTemp, Error, TEXT("UnlimitedDetail | udRenderTarget_Create error : %s"), GetError(error));
-		return error;
 	}
+
 	return error;
 }
 
