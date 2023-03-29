@@ -38,7 +38,7 @@ public:
 	}
 };
 
-	IMPLEMENT_GLOBAL_SHADER(FUdsCompositePS, "/Plugins/UdSDK/Private/Uds_Composite.usf", "MainPS", SF_Pixel);
+	IMPLEMENT_GLOBAL_SHADER(FUdsCompositePS, "/Plugins/UnlimitedDetail/Private/Uds_Composite.usf", "MainPS", SF_Pixel);
 
 void FUdsSubpassComposite::ParseEnvironment(FRDGBuilder& GraphBuilder, const FViewInfo& View, const FInputs& PassInputs)
 {

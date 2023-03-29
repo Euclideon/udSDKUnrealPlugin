@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.0",
+	"VersionName": "0.9",
 	"FriendlyName": "Unlimited Detail (udSDK)",
 	"Description": "Render Unlimited Detail models.",
 	"Category": "Rendering",
@@ -16,12 +16,12 @@
 	"Installed": true,
 	"Modules": [
 		{
-			"Name": "udSDK",
+			"Name": "UnlimitedDetail",
 			"Type": "Runtime",
 			"LoadingPhase": "PostConfigInit"
 		},
 		{
-			"Name": "udSDKEditor",
+			"Name": "UnlimitedDetailEditor",
 			"Type": "Editor",
 			"LoadingPhase": "Default"
 		}

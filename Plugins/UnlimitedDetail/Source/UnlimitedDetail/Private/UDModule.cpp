@@ -13,8 +13,8 @@
 void FUDModule::StartupModule()
 {
 	UE_LOG(LogTemp, Display, TEXT("UnlimitedDetail | StartupModule()"));
-	FString PluginShaderDir = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("udSDK"))->GetBaseDir(), TEXT("Shaders"));
-	AddShaderSourceDirectoryMapping(TEXT("/Plugins/UdSDK"), PluginShaderDir);
+	FString PluginShaderDir = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("UnlimitedDetail"))->GetBaseDir(), TEXT("Shaders"));
+	AddShaderSourceDirectoryMapping(TEXT("/Plugins/UnlimitedDetail"), PluginShaderDir);
 }
 
 void FUDModule::ShutdownModule()
@@ -24,4 +24,4 @@ void FUDModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 	
-IMPLEMENT_MODULE(FUDModule, udSDK)
+IMPLEMENT_MODULE(FUDModule, UnlimitedDetail)

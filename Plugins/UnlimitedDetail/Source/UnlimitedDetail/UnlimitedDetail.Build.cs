@@ -3,11 +3,11 @@
 using System.IO;
 using UnrealBuildTool;
 
-public class udSDK : ModuleRules
+public class UnlimitedDetail : ModuleRules
 {
 	private string ThirdPartyPath
 	{
-		get { return Path.GetFullPath(Path.Combine(ModuleDirectory, "../udSDKThirdParty/")); }
+		get { return Path.GetFullPath(Path.Combine(ModuleDirectory, "../UnlimitedDetailThirdParty/")); }
 	}
 	
 	public string ProjectDirectory
@@ -37,7 +37,7 @@ public class udSDK : ModuleRules
 		RuntimeDependencies.Add(FileFullName);
 	}
 	
-	public udSDK(ReadOnlyTargetRules Target) : base(Target)
+	public UnlimitedDetail(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
@@ -52,7 +52,7 @@ public class udSDK : ModuleRules
 				new string[] {
 					//required for FPostProcessMaterialInputs
 					EngineDirectory + "/Source/Runtime/Renderer/Private",
-					"udSDK/Public",
+					"UnlimitedDetail/Public",
 			}
 		);
 

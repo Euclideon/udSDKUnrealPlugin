@@ -15,14 +15,13 @@ enum class EUdsMode
 	Combined
 };
 
-//class FUdSDKCompositeUpscaler final : public ITemporalUpscaler
 class FUDComposite final : public ISpatialUpscaler
 {
 public:
 	FUDComposite(EUdsMode InMode, TArray<TSharedPtr<FUdsData>> InViewData);
 
 	// ISpatialUpscaler interface
-	const TCHAR* GetDebugName() const override { return TEXT("FUdSDKCompositeUpscaler"); }
+	const TCHAR* GetDebugName() const override { return TEXT("FUDComposite"); }
 
 	ISpatialUpscaler* Fork_GameThread(const class FSceneViewFamily& ViewFamily) const override;
 	FScreenPassTexture AddPasses(FRDGBuilder& GraphBuilder, const FViewInfo& View, const FInputs& PassInputs) const override;
