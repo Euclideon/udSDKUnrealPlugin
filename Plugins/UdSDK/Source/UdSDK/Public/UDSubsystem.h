@@ -6,16 +6,12 @@
 #include "udError.h"
 #include "udRenderTarget.h"
 #include "udConfig.h"
-#include "UdSDKMacro.h"
-#include "UdSDKDefine.h"
+#include "UDDefine.h"
 #include "SceneView.h"
 
 #include "UDSubsystem.generated.h"
 
-DECLARE_MULTICAST_DELEGATE(FUdLoginDelegate);
-DECLARE_MULTICAST_DELEGATE(FUdExitDelegate);
-
-class FUdSDKCompositeViewExtension;
+class FUDSceneViewExtension;
 
 typedef uint32_t udVoxelShader(struct udPointCloud* pPointCloud, const struct udVoxelID* pVoxelID, const void* pVoxelUserData);
 
@@ -121,5 +117,5 @@ private:
 
 	FMatrix ProjectionMatrix;
 
-	TSharedPtr<FUdSDKCompositeViewExtension, ESPMode::ThreadSafe> ViewExtension;
+	TSharedPtr<FUDSceneViewExtension, ESPMode::ThreadSafe> ViewExtension;
 };

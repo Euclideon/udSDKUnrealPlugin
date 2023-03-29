@@ -1,4 +1,4 @@
-#include "UdSDKCompositeUpscaler.h"
+#include "UDComposite.h"
 
 #include "Subpasses/UdsSubpassFirst.h"
 #include "Subpasses/UdsSubpassComposite.h"
@@ -12,7 +12,7 @@
 
 DECLARE_GPU_STAT(UdSDKCompositeResolutionPass)
 
-FUdSDKCompositeUpscaler::FUdSDKCompositeUpscaler(EUdsMode InMode, TArray<TSharedPtr<FUdsData>> InViewData) : Mode(InMode) , ViewData(InViewData)
+FUDComposite::FUDComposite(EUdsMode InMode, TArray<TSharedPtr<FUdsData>> InViewData) : Mode(InMode) , ViewData(InViewData)
 {
 	if (Mode != EUdsMode::None)
 	{
@@ -33,17 +33,17 @@ FUdSDKCompositeUpscaler::FUdSDKCompositeUpscaler(EUdsMode InMode, TArray<TShared
 	}
 }
 
-ISpatialUpscaler* FUdSDKCompositeUpscaler::Fork_GameThread(const class FSceneViewFamily& ViewFamily) const
+ISpatialUpscaler* FUDComposite::Fork_GameThread(const class FSceneViewFamily& ViewFamily) const
 {
 	// FSceneTextures::InitializeViewFamily(GraphBuilder, *(FViewFamilyInfo*)View.Family);
 	
 	// ViewFamily.Views[0]
 	//UE_LOG(LogTemp, Warning, TEXT("Game thread fork running"));
 	// the object we return here will get deleted by UE4 when the scene view tears down, so we need to instantiate a new one every frame.
-	return new FUdSDKCompositeUpscaler(Mode, ViewData);
+	return new FUDComposite(Mode, ViewData);
 }
 
-FScreenPassTexture FUdSDKCompositeUpscaler::AddPasses(FRDGBuilder& GraphBuilder, const FViewInfo& View, const FInputs& PassInputs) const
+FScreenPassTexture FUDComposite::AddPasses(FRDGBuilder& GraphBuilder, const FViewInfo& View, const FInputs& PassInputs) const
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Add passes running"));
 	
@@ -78,7 +78,7 @@ FScreenPassTexture FUdSDKCompositeUpscaler::AddPasses(FRDGBuilder& GraphBuilder,
 	return MoveTemp(FinalOutput);
 }
 
-TSharedPtr<FUdsData> FUdSDKCompositeUpscaler::GetDataForView(const FViewInfo& View) const
+TSharedPtr<FUdsData> FUDComposite::GetDataForView(const FViewInfo& View) const
 {
 	for (int i = 0; i < View.Family->Views.Num(); i++)
 	{

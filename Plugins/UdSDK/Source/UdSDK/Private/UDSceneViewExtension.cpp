@@ -1,31 +1,31 @@
-#include "UdSDKCompositeViewExtension.h"
+#include "UDSceneViewExtension.h"
 #include "UDSubsystem.h"
 #include "GlobalShader.h"
 #include "SceneView.h"
 #include "PixelShaderUtils.h"
 
-#include "UdSDKCompositeUpscaler.h"
+#include "UDComposite.h"
 #include "PostProcess/SceneRenderTargets.h"
 
-FUdSDKCompositeViewExtension::FUdSDKCompositeViewExtension(const FAutoRegister& AutoRegister) :
+FUDSceneViewExtension::FUDSceneViewExtension(const FAutoRegister& AutoRegister) :
 	FSceneViewExtensionBase(AutoRegister)
 {	
 
 }
 
 
-void FUdSDKCompositeViewExtension::SetupViewFamily(FSceneViewFamily &InViewFamily)
+void FUDSceneViewExtension::SetupViewFamily(FSceneViewFamily &InViewFamily)
 {
 	// Required to be implemented by abstract parent class
 }
 
-void FUdSDKCompositeViewExtension::SetupView(FSceneViewFamily &InViewFamily, FSceneView &InView)
+void FUDSceneViewExtension::SetupView(FSceneViewFamily &InViewFamily, FSceneView &InView)
 {
 	// Required to be implemented by abstract parent class
 }
 
 
-void FUdSDKCompositeViewExtension::BeginRenderViewFamily(FSceneViewFamily& InViewFamily)
+void FUDSceneViewExtension::BeginRenderViewFamily(FSceneViewFamily& InViewFamily)
 {
 	// TODO - It would be ideal if this function could correctly marshal the true depth buffer width/height down into the CaptureUDSImage call below
 	// I'm unsure of how to do that right now, so for now these values are being cached into a UDSDK engine singleton
@@ -56,7 +56,7 @@ void FUdSDKCompositeViewExtension::BeginRenderViewFamily(FSceneViewFamily& InVie
 				ViewData.Add(TSharedPtr<FUdsData>(Data));
 
 				if (MySubsystem->IsValid())
-					InViewFamily.SetSecondarySpatialUpscalerInterface(new FUdSDKCompositeUpscaler(EUdsMode::PostProcessingOnly, ViewData));
+					InViewFamily.SetSecondarySpatialUpscalerInterface(new FUDComposite(EUdsMode::PostProcessingOnly, ViewData));
 			}
 		}
 	}

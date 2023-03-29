@@ -8,29 +8,6 @@
 #include "Containers/UnrealString.h"
 #include "Core/udMath.h"
 
-#include <cstdint>
-#include <string>
-#include <vector>
-
-
-
-struct FUdAsset
-{
-	int64_t id = -1;
-	FString name = "";
-	FString description = "";
-	FString attribution = "";
-	FString type = "";
-	int64_t bytes = 0;
-	FString dateAdded = "";
-	FString status = "";
-	int8_t percentComplete = 0;
-
-	FString folder = "";
-	FString url = "";
-	void* pPointCloud = nullptr;
-};
-
 const TMap<udError, FString> g_udSDKErrorInfo = {
 	{ udE_Success,TEXT("Indicates the operation was successful.") },
 	{ udE_Failure,TEXT("A catch-all value that is rarely used, internally the below values are favored.") },
@@ -147,9 +124,3 @@ public:
 private:
 	TArray<Type>	Data;
 };
-
-
-
-
-
-
