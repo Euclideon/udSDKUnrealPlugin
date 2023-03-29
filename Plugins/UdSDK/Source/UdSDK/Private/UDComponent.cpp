@@ -38,16 +38,10 @@ public:
 	{
 		QUICK_SCOPE_CYCLE_COUNTER(STAT_ArrowSceneProxy_DrawDynamicElements);
 
-		FMatrix EffectiveLocalToWorld = GetLocalToWorld();
-
-		UUDSubsystem* MySubsystem = GEngine->GetEngineSubsystem<UUDSubsystem>();
-
-		for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
+		if (instance == -1)
 		{
-			if (VisibilityMap & (1 << ViewIndex))
-			{
-				const FSceneView* View = Views[ViewIndex];
-			}
+			// This Log shouldn't be required but it's helping to track down an issue that happens occasionally
+			UE_LOG(LogTemp, Warning, TEXT("UnlimitedDetail | Getting dynamic mesh elements without mounted instance."));
 		}
 	}
 
@@ -92,8 +86,6 @@ public:
 
 		if (instance == -1)
 		{
-			check(instance == -1);
-
 			instance = MySubsystem->QueueInstance(myRoot->PointCloudHandle, GetLocalToWorld(), &GetScene());
 		}
 		else
