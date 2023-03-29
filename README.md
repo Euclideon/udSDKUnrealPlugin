@@ -1,5 +1,6 @@
-# !DOCS ARE UNDER CONSTRUCTION!
 # Unlimited Detail for Unreal guide.
+
+* PLEASE NOTE: This guide is still under construction *
 
 > Euclideon would like to thank community members [zengweicheng666](https://github.com/zengweicheng666) and [EuleeStar](https://github.com/EuleeStar) for their Unreal Engine 4 integration which is available on [GitHub](https://github.com/zengweicheng666/UdSDKProject). The Unreal Engine 5 plugin is built upon the foundation they built for UE4.
 
