@@ -146,10 +146,10 @@ void UUDComponent::LoadPointCloud()
 	if (Url.IsEmpty())
 		return;
 
-	 FUDPointCloudHandle* PCI = MySubsystem->Load(GetUrl());
-	 PointCloudHandle = PCI;
+	PointCloudHandle = MySubsystem->Load(GetUrl());
 
-	 UE_LOG(LogTemp, Display, TEXT("UnlimitedDetail | Component %s | Load PCI | %p | %s"), *GetName(), PointCloudHandle, *PointCloudHandle->URL);
+	if (PointCloudHandle)
+		UE_LOG(LogTemp, Display, TEXT("UnlimitedDetail | Component %s | Load PCI | %p | %s"), *GetName(), PointCloudHandle, *PointCloudHandle->URL);
 }
 
 void UUDComponent::UnloadPointCloud()

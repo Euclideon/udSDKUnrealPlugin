@@ -44,7 +44,7 @@ struct FUDPointCloudInstanceHandle
 };
 
 UCLASS()
-class UDSDK_API UUDSubsystem : public UEngineSubsystem
+class UNLIMITEDDETAIL_API UUDSubsystem : public UEngineSubsystem
 {
 	GENERATED_BODY()
 

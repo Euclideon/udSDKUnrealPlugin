@@ -5,7 +5,7 @@
 	"Description": "",
 	"Modules": [
 		{
-			"Name": "UdSDKProject",
+			"Name": "UnlimitedDetailProject",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
@@ -15,7 +15,7 @@
 	],
 	"Plugins": [
 		{
-			"Name": "UdSDK",
+			"Name": "UnlimitedDetail",
 			"Enabled": true
 		},
 		{

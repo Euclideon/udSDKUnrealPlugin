@@ -2,13 +2,13 @@
 
 using UnrealBuildTool;
 
-public class UdSDKProject : ModuleRules
+public class UnlimitedDetailProject : ModuleRules
 {
-	public UdSDKProject(ReadOnlyTargetRules Target) : base(Target)
+	public UnlimitedDetailProject(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UdSDK" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UnlimitedDetail" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

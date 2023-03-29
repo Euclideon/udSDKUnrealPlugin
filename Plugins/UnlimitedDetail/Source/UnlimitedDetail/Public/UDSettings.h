@@ -6,7 +6,7 @@
 #include "UDSettings.generated.h"
 
 UCLASS(config = ObjectStorageSettings)
-class UDSDK_API UUDSettings : public UObject
+class UNLIMITEDDETAIL_API UUDSettings : public UObject
 {
 	GENERATED_BODY()
 

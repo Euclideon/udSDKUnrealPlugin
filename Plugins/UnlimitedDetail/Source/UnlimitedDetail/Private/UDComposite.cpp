@@ -10,7 +10,7 @@
 		Subpass->step(GraphBuilder, View, PassInputs); \
 	}
 
-DECLARE_GPU_STAT(UdSDKCompositeResolutionPass)
+DECLARE_GPU_STAT(UnlimitedDetailCompositeResolutionPass)
 
 FUDComposite::FUDComposite(EUdsMode InMode, TArray<TSharedPtr<FUdsData>> InViewData) : Mode(InMode) , ViewData(InViewData)
 {
@@ -47,7 +47,7 @@ FScreenPassTexture FUDComposite::AddPasses(FRDGBuilder& GraphBuilder, const FVie
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Add passes running"));
 	
-	RDG_GPU_STAT_SCOPE(GraphBuilder, UdSDKCompositeResolutionPass);
+	RDG_GPU_STAT_SCOPE(GraphBuilder, UnlimitedDetailCompositeResolutionPass);
 	check(PassInputs.SceneColor.IsValid());
 
 	

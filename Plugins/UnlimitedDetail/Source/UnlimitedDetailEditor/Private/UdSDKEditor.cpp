@@ -16,7 +16,7 @@
 #include "UdSDKEditor.h"
 
 
-static const FName UdSDKEditorTabName("UdSDKEditor");
+static const FName UdSDKEditorTabName("UnlimitedDetailEditor");
 
 #define LOCTEXT_NAMESPACE "FUdSDKEditorModule"
 

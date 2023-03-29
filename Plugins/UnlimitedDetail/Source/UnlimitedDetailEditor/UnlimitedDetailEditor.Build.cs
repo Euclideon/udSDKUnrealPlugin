@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class udSDKEditor : ModuleRules
+public class UnlimitedDetailEditor : ModuleRules
 {
-	public udSDKEditor(ReadOnlyTargetRules Target) : base(Target)
+	public UnlimitedDetailEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
@@ -17,7 +17,7 @@ public class udSDKEditor : ModuleRules
 		PrivateIncludePaths.AddRange(
 			new string[]
 			{
-				"udSDKEditor/Private",
+				"UnlimitedDetailEditor/Private",
 			});
 			
 		
@@ -46,7 +46,7 @@ public class udSDKEditor : ModuleRules
 				"SlateCore",
 				"PropertyEditor",
 				"InputCore",
-				"udSDK",
+				"UnlimitedDetail",
 				"AssetTools",
 				"Settings",
 				//"PropertyEditor",
