@@ -76,14 +76,16 @@ Keep this key handy, as it is what we will paste into the Unreal Plugin.
 The Unlimited Detail for Unreal plugin can be acquired either directly from the Unreal Marketplace or from our GitHub releases page, both approaches are equivalent and are detailed below:
 
 ## Install the Unreal Plugin – Github Releases
-
+[section unfinished]
 1. Navigate to https://my.github.url.to.the.release.of.the.plugin.com, and click Releases on the right:
+[screenshot needed]
 1. Download the latest release.
 1. Create a new Unreal project. Locate the folder, it should look something like this: 
     - ![image](./mdcontent/unreal_project.png "UDS in Unreal")
 1. Create a new folder alongside your .uproject file, and name it `Plugins` :
     - ![image](./mdcontent/unreal_plugins_folder.png "UDS in Unreal")
-1. Open `Plugins` and create a new folder called `UdSDK`
+1. Open `Plugins` and create a new folder called `UdSDK` [ need to tripple check to ensure the names match the final packaged plugin]
+    - ![image](./mdcontent/unreal_plugins_folder.png "UDS in Unreal")
 1. Copy the contents of the downloaded release from github into the `UdSDK` folder. The folder should resemble the following:
     - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
 
