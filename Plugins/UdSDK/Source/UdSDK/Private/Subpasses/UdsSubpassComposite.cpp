@@ -87,7 +87,7 @@ void FUdsSubpassComposite::CreateResources(FRDGBuilder& GraphBuilder, const FVie
 	// Wondering if this edge case is ever viable to handle or if it throws exceptions later
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("%s data not enabled yet."), TEXT(__FUNCTION__));
+		UE_LOG(LogTemp, Error, TEXT("%s data not enabled yet."), __FUNCTION__);
 	}
 }
 
