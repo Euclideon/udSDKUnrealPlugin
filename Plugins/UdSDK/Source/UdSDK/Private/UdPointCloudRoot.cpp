@@ -25,6 +25,12 @@ public:
 	virtual ~FPointCloudSceneProxy()
 	{
 		//TODO: Cleanup here
+		if (instance != -1)
+		{
+			UUDSubsystem *MySubsystem = GEngine->GetEngineSubsystem<UUDSubsystem>();
+			MySubsystem->RemoveInstance(instance);
+			instance = -1;
+		}
 	}
 
 	// FPrimitiveSceneProxy interface.

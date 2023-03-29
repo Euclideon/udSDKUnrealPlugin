@@ -16,17 +16,12 @@
 	"Installed": true,
 	"Modules": [
 		{
-			"Name": "UdSDK",
-			"Type": "Runtime",
-			"LoadingPhase": "PostEngineInit"
-		},
-		{
-			"Name": "UdSDKUpscaling",
+			"Name": "udSDK",
 			"Type": "Runtime",
 			"LoadingPhase": "PostConfigInit"
 		},
 		{
-			"Name": "UdSDKEditor",
+			"Name": "udSDKEditor",
 			"Type": "Editor",
 			"LoadingPhase": "Default"
 		}

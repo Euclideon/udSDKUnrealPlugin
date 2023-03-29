@@ -1,13 +1,14 @@
 // Copyright (C) RenZhai.2021.All Rights Reserved.
-#include "ObjectStorageSettingsBase.h"
+#include "UDSettings.h"
+#include "UDSubsystem.h"
 
-void UObjectStorageSettingsBase::SaveObjectStorageConfig()
+void UUDSettings::SaveObjectStorageConfig()
 {
 	FString SettingsEditorConfigPath = FPaths::ProjectConfigDir() / TEXT("Default") + GetClass()->ClassConfigName.ToString() + TEXT(".ini");
 	SaveConfig(CPF_Config, *SettingsEditorConfigPath);
 }
 
-void UObjectStorageSettingsBase::LoadObjectStorageConfig()
+void UUDSettings::LoadObjectStorageConfig()
 {
 	FString SettingsEditorConfigPath = FPaths::ProjectConfigDir() / TEXT("Default") + GetClass()->ClassConfigName.ToString() + TEXT(".ini");
 	LoadConfig(GetClass(), *SettingsEditorConfigPath);

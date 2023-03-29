@@ -4,6 +4,7 @@
 
 #include <udContext.h>
 
+#include "Interfaces/IPluginManager.h"
 #include "CoreMinimal.h"
 
 #define LOCTEXT_NAMESPACE "FUdSDKModule"
@@ -12,6 +13,8 @@
 void FUdSDKModule::StartupModule()
 {
 	UE_LOG(LogTemp, Display, TEXT("UDSDK: StartupModule()"));
+	FString PluginShaderDir = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("UdSDK"))->GetBaseDir(), TEXT("Shaders"));
+	AddShaderSourceDirectoryMapping(TEXT("/Plugins/UdSDK"), PluginShaderDir);
 }
 
 void FUdSDKModule::ShutdownModule()

@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ObjectStorageSettingsDetails.h"
-#include "ObjectStorageSettings.h"
+#include "UDSettings.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
 #include "DetailWidgetRow.h"
@@ -19,7 +19,7 @@ void FObjectStorageSettingsDetails::CustomizeDetails(IDetailLayoutBuilder& Detai
 	TArray<TWeakObjectPtr<UObject>> ObjectsBeingCustomized;
 	DetailBuilder.GetObjectsBeingCustomized(ObjectsBeingCustomized);
 	check(ObjectsBeingCustomized.Num() == 1);
-	TWeakObjectPtr<UObjectStorageSettings> Settings = Cast<UObjectStorageSettings>(ObjectsBeingCustomized[0].Get());
+	TWeakObjectPtr<UUDSettings> Settings = Cast<UUDSettings>(ObjectsBeingCustomized[0].Get());
 
 	IDetailCategoryBuilder& EncryptionCategory = DetailBuilder.EditCategory("UdSDK login information");
 
