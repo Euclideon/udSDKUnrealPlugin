@@ -91,7 +91,7 @@ The Unlimited Detail for Unreal plugin can be acquired either directly from the 
 This procces only needs to be performed once per project, and additionally if your API keys are changed.
 
 1. Copy your API key from your UD Cloud account, it resemble the following: 
-`eyJhcGlrZXlpZCI6IjAxMjM0NTY3OC0xMTExLTIyMjItMzMzMy00NDQ0NTU1NTY2NjYiLCJ1c2VyaWQiOiIwMTIzNDU2NzgtMTExMS0yMjIyLTMzMzMtNDQ0NDU1NTU2NjY2IiwidmVyc2lvbiI6IjEifQ==`
+`eyJhcGlrZXlpZCI6InRoZXJlaXNub3RoaW5ndXBteXNsZXZlcyIsInVzZXJpZCI6InRoZXJlaXNub3RoaW5ndXBteXNsZXZlcyIsInZlcnNpb24iOiIxMzM3In0=`
 1. Load your Unreal Project
 1. Initially, the plugin cannot connect to the Unlimited Detail server as it has not been configured, and displays the folllowing error: 
     - ![image](./mdcontent/apikey_fail_Server.png "UDS in Unreal")
