@@ -6,9 +6,11 @@
 
 # Table of Contents
 
-1. [Quick start summary](#example1)
-2. [Indepth guide](#example2)
-3. [Blueprint API](#example3)
+1. [Quick start summary](#quick-start-summary)
+1. [Indepth guide](#indepth-guide)
+1. [Additional Info](#bdditional-Info)
+1. [Blueprint API](#blueprint-API)
+1. [Blueprint examples](#blueprint-examples)
 
 # Quick start summary
 
@@ -19,20 +21,20 @@
 1.	Ensure you have downloaded and installed the Unlimited Detail Unreal 5 plugin:
     1.	https://my.github.url.to.the.release.of.the.plugin.com 
     1.	https://docs.unrealengine.com/5.0/en-US/working-with-plugins-in-unreal-engine/  
-1.	Ensure your API key is entered into the plugins Project Settings 
-    1. ![image](./mdcontent/projectSettingsAPIKey.png "Project Settings")
+1.	Ensure your API key is entered into the plugins Project Settings, and that the Server field reads `https://udcloud.euclideon.com`: 
+    1. ![image](./mdcontent/projectsettings_APIKey.png "Project Settings")
 1.	Restart Unreal (UDS will not start rendering until your API key is logged in, restarting will force that).
-1.	Add the Unlimited Detail component to either a scene actor or an existing class:
+1.	Add the UD component to either a scene actor or an existing class:
     1. ![image](./mdcontent/addComponent.png "Add component")
-    1. ![image](./mdcontent/addUDSComponent.png "Component name")
+    1. ![image](./mdcontent/component_Search.png "Component name")
 1.	Assign a valid UDS URL to the component:
     1. ![image](./mdcontent/url_empty.png "Empty URL")
     1. ![image](./mdcontent/url_valid.png "Example URL")
-1.	A test asset can be accessed with the following URL: https://azmodels.vault.euclideon.com/Japan/0_1_0.uds
+1.	A test asset can be accessed with the following URL: `https://models.euclideon.com/Japan/0_1_0.uds`
 1.	Set the component scale to something large and immediately obvious:
     1. ![image](./mdcontent/scale_large.png "Large scale")
 1.	Drag the actor into the Scene to begin rendering UDS!
-    1. ![image](./mdcontent/unrealuds.png "UDS in Unreal")
+    1. ![image](./mdcontent/example_UDinUnreal.png "UDS in Unreal")
 
 # Indepth guide 
 
@@ -113,52 +115,32 @@ Your Unlimited Detail plugin is now fully installed and configured and you can b
 ## Rendering Unlimited Detail Pointcloud within Unreal Engine
 Inorder to render Point Cloud assets within Unreal Engine, you must add an Unlimited Detail component to an actor you create. 
 
-1. Create a new blueprint actor within your project
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Open the Blueprint Actor
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. In the Top left, click Add Component
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. And Search for “Unlimited Detail”
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Add the Unlimited Detail Component to the actor.
-1. Once added, you should immediately see a default sample visual load in both the Blueprint inspector Viewport, and in the scene, should you place this actor into the world.
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Ensure you have a valid URL to a .UDS asset. This can either be stored online, like so: 
-- [SCREENSHOT HERE]
- locally, like so:
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-1. Locate the URL dialogue box of the Unlimited Detail component:
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
+1. Right click in your content browser and create a new blueprint actor within your project:
+    - ![image](./mdcontent/example_createBlueprint.png "UDS in Unreal")
+1. The blueprint can be any subtype, but for now chose actor:
+    - ![image](./mdcontent/example_actor.png "UDS in Unreal")
+1. Name, and open your newly created asset. In the Top left, click Add Component, and search for "UD":
+    - ![image](./mdcontent/example_componentsearch.png "UDS in Unreal")
+1. Add the UD Component to your actor, your editor should resemble the following:
+    - ![image](./mdcontent/example_added.png "UDS in Unreal")
+1. Ensuring the UD Component is still selected, give it a large and immediately obvious scale:
+    - ![image](./mdcontent/example_largeScale.png "UDS in Unreal")
+1. Locate the "URL" input dialogue under the details panel on the right:
+    - ![image](./mdcontent/example_locateURL.png "UDS in Unreal")
+1. Paste a valid URL into the dialogue. For example: `https://models.euclideon.com/Japan/0_0_0.uds`, and then zoom your view out to locate the Point Cloud
+    - ![image](./mdcontent/example_japan.png "UDS in Unreal")
+1. Save your blueprint, then create a new level and drag the actor into the scene:
+    - ![image](./mdcontent/example_UDinUnreal.png "UDS in Unreal")
+    - ![image](./mdcontent/example_unreal2.png "UDS in Unreal")
+
+1. Unlimited Detail is now rendering within Unreal 5!
 
 
-And paste either of the following 2 URLs into this dialogue:
-[SCREENSHOT HERE OF PASTING URL OF CLOUD BASED EXAMPLE ASSET]
-Result of URL 1
-[SCREENSHOT HERE OF PASTING URL OF LOCALLY LOADED EXAMPLE ASSETX]
-Result of URL 2 (LOCAL EXAMPLE)
-
-Local URLs respect absolute or relative filepaths.
-As the Unlimited Detail is a simple actor component, many of these components can be composited together into a single actor, like so:
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-Close the Blueprint Editor, and drag the actor from your content browser into your scene:
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-The UDS is now visualizable in the Unreal Editor.
-Should you require, you can also add these components to scene actors much like any other unreal actor component: 
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-Additionally, the above can also be achieved via C++ by creating a base c++ actor, and adding the following code:
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
-[COPY PASTEABLE PLAINTEXT CODE HERE]
-
-Additional examples:
-When combining the power of Unlimited Detail with the unreal engine, we’re able to make up for shortfalls inherent to pointcloud, for example:
-
-[SHADOW CASTING VIA PROXY HULL]
-[PHYSICS COLLISION WITH UDS ASSETS VIA PROXY HULL]
-[ANIMATING EXAMPLE OF UDS ASSETS]
+# Additional Info
+Local URLs can be used to render .UDS files if you have access to them. Simply paste the absolute path of the asset into the URL dialogue as above, and the .UDS will begin rendering.
 
 # Blueprint API
 Currently the Blueprint API is under development and will be expanded in the near future.
 
 ## Blueprint examples:
-Space kept intentionally blank.
+>Space kept intentionally blank.
