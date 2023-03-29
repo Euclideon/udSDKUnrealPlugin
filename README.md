@@ -25,8 +25,8 @@
     1. ![image](./mdcontent/projectsettings_APIKey.png "Project Settings")
 1.	Restart Unreal (UDS will not start rendering until your API key is logged in, restarting will force that).
 1.	Add the UD component to either a scene actor or an existing class:
-    1. ![image](./mdcontent/addComponent.png "Add component")
-    1. ![image](./mdcontent/component_Search.png "Component name")
+    1. ![image](./mdcontent/component_add.png "Add component")
+    1. ![image](./mdcontent/component_search.png "Component name")
 1.	Assign a valid UDS URL to the component:
     1. ![image](./mdcontent/url_empty.png "Empty URL")
     1. ![image](./mdcontent/url_valid.png "Example URL")
@@ -34,7 +34,7 @@
 1.	Set the component scale to something large and immediately obvious:
     1. ![image](./mdcontent/scale_large.png "Large scale")
 1.	Drag the actor into the Scene to begin rendering UDS!
-    1. ![image](./mdcontent/example_UDinUnreal.png "UDS in Unreal")
+    1. ![image](./mdcontent/example_unreal_1.png "UDS in Unreal")
 
 # Indepth guide 
 
@@ -43,25 +43,25 @@ In order to use the Unlimited Detail Unreal plugin, you require a udCloud API ke
 
 1. Navigate to https://udcloud.com/
 1. Click the sing in/sign up button in the top right:
-    - ![image](./mdcontent/udcloud_Welcome.png "UDS in Unreal")
+    - ![image](./mdcontent/udcloud_Welcome.png "udCloud welcome screen")
 1. Clicking the Sign In / Sign up button yields the following window:
-    - ![image](./mdcontent/udcloud_login.png "UDS in Unreal")
+    - ![image](./mdcontent/udcloud_login.png "udCloud sign in")
 1. Create an account with any of the listed authentication methods.
 1. After reading and accepting the EULA, Login. You will be greeted with the following window: 
-    - ![image](./mdcontent/udcloud_loggedin.png "UDS in Unreal")
+    - ![image](./mdcontent/udcloud_loggedin.png "udCloud sign in successful")
 1. Click your display name in the top right, to expand the following drop down:
-    - ![image](./mdcontent/udcloud_displayNameClicked.png "UDS in Unreal")
+    - ![image](./mdcontent/udcloud_display_name_clicked.png "udCloud display name")
 1. Click "API Keys" to load the following page: 
-    - ![image](./mdcontent/udcloud_APIKeys.png "UDS in Unreal")
+    - ![image](./mdcontent/udcloud_apikeys.png "udCloud api keys")
 1. Click on the top right button: 'Create API Key'
-    ![image](./mdcontent/udcloud_createAPIKey.png "UDS in Unreal")
+    ![image](./mdcontent/udcloud_create_apikey.png "udCloud create api key")
 1. Enter a display name for the key, and (optionally) specify the number of days this key will be valid for.
 1. Click **Create an API key**. It will be listed on the page like so: 
-    - ![image](./mdcontent/udcloud_ApiKeyList.png "UDS in Unreal")
+    - ![image](./mdcontent/udcloud_apikey_list.png "udCloud api key list")
 1. Under the “Options” column, click the **“...”** button on far right.
-    - ![image](./mdcontent/udcloud_CopyAPIKey.png "UDS in Unreal")
+    - ![image](./mdcontent/udcloud_copy_apikey.png "udCloud copy api key")
 1. Click **Copy API Key** to Clipboard. Once copied, you will see the following confirmation:
-    - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
+    - ![image](./mdcontent/apikey_confirmation.png "udCloud api key copy confirmation")
 
 For example, the following is the result of pasting the copied clipboard API key:
 
@@ -75,17 +75,17 @@ Keep this key handy, as it is what we will paste into the Unreal Plugin.
 
 The Unlimited Detail for Unreal plugin can be acquired either directly from the Unreal Marketplace or from our GitHub releases page, both approaches are equivalent and are detailed below:
 
-
-
 ## Install the Unreal Plugin – Github Releases
-
+[section unfinished]
 1. Navigate to https://my.github.url.to.the.release.of.the.plugin.com, and click Releases on the right:
+[screenshot needed]
 1. Download the latest release.
 1. Create a new Unreal project. Locate the folder, it should look something like this: 
     - ![image](./mdcontent/unreal_project.png "UDS in Unreal")
 1. Create a new folder alongside your .uproject file, and name it `Plugins` :
-    - ![image](./mdcontent/unreal_pluginsFolder.png "UDS in Unreal")
-1. Open `Plugins` and create a new folder called `UdSDK`
+    - ![image](./mdcontent/unreal_plugins_folder.png "UDS in Unreal")
+1. Open `Plugins` and create a new folder called `UdSDK` [ need to tripple check to ensure the names match the final packaged plugin]
+    - ![image](./mdcontent/unreal_plugins_folder.png "UDS in Unreal")
 1. Copy the contents of the downloaded release from github into the `UdSDK` folder. The folder should resemble the following:
     - ![image](./mdcontent/apikey_confirmation.png "UDS in Unreal")
 
@@ -96,19 +96,18 @@ This procces only needs to be performed once per project, and additionally if yo
 `eyJhcGlrZXlpZCI6InRoZXJlaXNub3RoaW5ndXBteXNsZXZlcyIsInVzZXJpZCI6InRoZXJlaXNub3RoaW5ndXBteXNsZXZlcyIsInZlcnNpb24iOiIxMzM3In0=`
 1. Load your Unreal Project
 1. Initially, the plugin cannot connect to the Unlimited Detail server as it has not been configured, and displays the folllowing error: 
-    - ![image](./mdcontent/apikey_fail_Server.png "UDS in Unreal")
+    - ![image](./mdcontent/apikey_fail_Server.png "apikey fail")
 1. Click Ok.
 1. Once loaded, navigate into your Plugins Settings dialogue:
-    - ![image](./mdcontent/projectsettings_navigation.png "UDS in Unreal")
+    - ![image](./mdcontent/projectsettings_navigation.png "edit > project settings")
 1. Scroll down the very bottom until you see “Unlimited Detail” on the left:
-    - ![image](./mdcontent/projectsettings_APIKey.png "UDS in Unreal")
+    - ![image](./mdcontent/projectsettings_APIKey.png "project settings")
 1. Ensure that the `Server Path` section reads `https://udcloud.euclideon.com`
 1. Paste your API key into the API Key Dialogue.
 1. From now on, Unreal will automatically authenticate with the Unlimited Detail server upon project or build start. 
 1. If your API key is ever invalidated or fails to authenticate for any reason, you will see the following error:
-    - ![image](./mdcontent/apikey_fail_invalidKey.png "UDS in Unreal")
+    - ![image](./mdcontent/apikey_fail_invalid_key.png "api key failure")
 1. Restart Unreal!
-
 
 Your Unlimited Detail plugin is now fully installed and configured and you can begin working with our large point cloud .UDS format.
 
@@ -116,25 +115,24 @@ Your Unlimited Detail plugin is now fully installed and configured and you can b
 Inorder to render Point Cloud assets within Unreal Engine, you must add an Unlimited Detail component to an actor you create. 
 
 1. Right click in your content browser and create a new blueprint actor within your project:
-    - ![image](./mdcontent/example_createBlueprint.png "UDS in Unreal")
+    - ![image](./mdcontent/example_create_blueprint.png "Create new blueprint")
 1. The blueprint can be any subtype, but for now chose actor:
-    - ![image](./mdcontent/example_actor.png "UDS in Unreal")
+    - ![image](./mdcontent/example_actor.png "From actor")
 1. Name, and open your newly created asset. In the Top left, click Add Component, and search for "UD":
-    - ![image](./mdcontent/example_componentsearch.png "UDS in Unreal")
+    - ![image](./mdcontent/example_component_search.png "Add new UD component")
 1. Add the UD Component to your actor, your editor should resemble the following:
-    - ![image](./mdcontent/example_added.png "UDS in Unreal")
+    - ![image](./mdcontent/example_added.png "Component added")
 1. Ensuring the UD Component is still selected, give it a large and immediately obvious scale:
-    - ![image](./mdcontent/example_largeScale.png "UDS in Unreal")
+    - ![image](./mdcontent/example_large_scale.png "Large scale")
 1. Locate the "URL" input dialogue under the details panel on the right:
-    - ![image](./mdcontent/example_locateURL.png "UDS in Unreal")
+    - ![image](./mdcontent/example_locate_url.png "URL dialogue")
 1. Paste a valid URL into the dialogue. For example: `https://models.euclideon.com/Japan/0_0_0.uds`, and then zoom your view out to locate the Point Cloud
-    - ![image](./mdcontent/example_japan.png "UDS in Unreal")
+    - ![image](./mdcontent/example_japan.png "Japan dataset")
 1. Save your blueprint, then create a new level and drag the actor into the scene:
-    - ![image](./mdcontent/example_UDinUnreal.png "UDS in Unreal")
-    - ![image](./mdcontent/example_unreal2.png "UDS in Unreal")
+    - ![image](./mdcontent/example_unreal_1.png "Scene rendering 1")
+    - ![image](./mdcontent/example_unreal_2.png "Scene rendering 2")
 
 1. Unlimited Detail is now rendering within Unreal 5!
-
 
 # Additional Info
 Local URLs can be used to render .UDS files if you have access to them. Simply paste the absolute path of the asset into the URL dialogue as above, and the .UDS will begin rendering.
