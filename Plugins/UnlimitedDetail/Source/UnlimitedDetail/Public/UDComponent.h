@@ -2,6 +2,7 @@
 
 #include "Components/SceneComponent.h"
 #include "CoreMinimal.h"
+#include "Components/PrimitiveComponent.h"
 #include "UDComponent.generated.h"
 
 UCLASS(Blueprintable, BlueprintType, ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -36,7 +37,7 @@ protected:
 	/** Overridable native event for when play begins for this actor. */
 	virtual void BeginPlay() override;
 	virtual void PostLoad() override;
-	
+
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void BeginDestroy() override;
 

@@ -6,6 +6,7 @@
 #include "udPointCloud.h"
 
 #include "Containers/UnrealString.h"
+#include "Containers/ResourceArray.h"
 
 const TMap<udError, FString> g_udSDKErrorInfo = {
 	{ udE_Success,TEXT("Indicates the operation was successful.") },
