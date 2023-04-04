@@ -5,7 +5,6 @@
 #include "udError.h"
 #include "udPointCloud.h"
 
-
 #include "Containers/UnrealString.h"
 #include "Containers/ResourceArray.h"
 

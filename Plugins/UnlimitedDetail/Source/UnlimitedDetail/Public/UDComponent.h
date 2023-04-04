@@ -10,26 +10,26 @@ class UUDComponent : public UPrimitiveComponent
 {
 	GENERATED_BODY()
 
-		friend class FPointCloudSceneProxy;
+	friend class FPointCloudSceneProxy;
 
 public:
 	UUDComponent();
 
 	UFUNCTION(BlueprintGetter, Category = "UnlimitedDetail")
-		FString GetUrl() const { return Url; }
+	FString GetUrl() const { return Url; }
 
 	UFUNCTION(BlueprintSetter, Category = "UnlimitedDetail")
-		void SetUrl(FString InUrl);
+	void SetUrl(FString InUrl);
 
 	UFUNCTION(CallInEditor, BlueprintCallable, Category = "UnlimitedDetail")
-		void RefreshPointCloud();
+	void RefreshPointCloud();
 
 private:
 	void LoadPointCloud();
 	void UnloadPointCloud();
 
 	UPROPERTY(EditAnywhere, BlueprintGetter = GetUrl, BlueprintSetter = SetUrl, Category = "UnlimitedDetail")
-		FString Url;
+	FString Url;
 
 	struct FUDPointCloudHandle* PointCloudHandle;
 

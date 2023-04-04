@@ -2,7 +2,6 @@
 
 #include "UdsSubpass.h"
 
-
 class FUdsSubpassComposite : public FUdsSubpass
 {
 public:
